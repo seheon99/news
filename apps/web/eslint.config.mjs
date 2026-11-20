@@ -19,8 +19,12 @@ const eslintConfig = defineConfig([
   tailwindcss.configs.recommended,
   {
     settings: {
-      tailwindcss: { cssConfigPath: "./tailwind.css" },
+      tailwindcss: { cssConfigPath: "./src/app/reader.css" },
     },
+  },
+  {
+    files: ["src/lib/utils.ts"],
+    rules: { "tailwindcss/no-custom-classname": "off" },
   },
   prettier,
   // Override default ignores of eslint-config-next.

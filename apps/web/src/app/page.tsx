@@ -1,3 +1,4 @@
+import { StoryCard } from "@/components/story-card";
 export default function Home() {
-  return <p>Hello, World!</p>;
+  return <StoryCard />;
 }
