@@ -96,6 +96,12 @@ export default function Settings() {
                   : "수집 성공"}
             </p>
             <p className="text-xs text-[#8b94a2]">
+              {status?.error && status.failedAt && (
+                <>
+                  마지막 실패:{" "}
+                  {new Date(status.failedAt).toLocaleString("ko-KR")} ·{" "}
+                </>
+              )}
               마지막 성공:{" "}
               {source.lastFetchedAt
                 ? new Date(source.lastFetchedAt).toLocaleString("ko-KR")

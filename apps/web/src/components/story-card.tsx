@@ -19,6 +19,7 @@ export function StoryCard() {
   const data = useReaderStore((s) => s.data);
   const hydrated = useReaderStore((s) => s.hydrated);
   const choose = useReaderStore((s) => s.choose);
+  const isCurrent = useReaderStore((s) => s.isCurrent);
   const undo = useReaderStore((s) => s.undo);
   const interest = useReaderStore((s) => s.interest);
   const history = useReaderStore((s) => s.history);
@@ -26,7 +27,12 @@ export function StoryCard() {
   const mutate = useFeedMutate();
   const [message, setMessage] = useState("");
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const drag = useRef<{
+    x: number;
+    y: number;
+    moved: boolean;
+    id: string;
+  } | null>(null);
   const suppress = useRef(false);
   const story = data.stories[data.queue[0]];
   const liked = !!story && Object.hasOwn(data.interests, story.id);
@@ -34,8 +40,8 @@ export function StoryCard() {
     (s) => !statuses[s.url] || statuses[s.url].loading,
   );
   const failed = data.sources.filter((s) => statuses[s.url]?.error).length;
-  function act(action: Action) {
-    choose(action);
+  function act(action: Action, expectedId?: string) {
+    if (!choose(action, expectedId)) return;
     setMessage(
       {
         skip: "안 읽기로 선택했어요.",
@@ -79,7 +85,8 @@ export function StoryCard() {
       (e.pointerType === "mouse" && e.button !== 0)
     )
       return;
-    drag.current = { x: e.clientX, y: e.clientY, moved: false };
+    if (!story) return;
+    drag.current = { x: e.clientX, y: e.clientY, moved: false, id: story.id };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
   function move(e: PointerEvent<HTMLElement>) {
@@ -96,7 +103,7 @@ export function StoryCard() {
     if (!start) return;
     drag.current = null;
     setOffset({ x: 0, y: 0 });
-    if (start.moved) {
+    if (start.moved || cancel || !isCurrent(start.id)) {
       suppress.current = true;
       setTimeout(() => {
         suppress.current = false;
@@ -104,7 +111,7 @@ export function StoryCard() {
     }
     if (!cancel) {
       const action = gestureAction(e.clientX - start.x, e.clientY - start.y);
-      if (action) act(action);
+      if (action) act(action, start.id);
     }
   }
   const empty = !hydrated

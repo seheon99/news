@@ -20,7 +20,8 @@ type ReaderStore = {
   history: Snapshot[];
   hydrate: (storage: StorageAccess) => void;
   merge: (result: FeedResult) => void;
-  choose: (action: "skip" | "save" | "defer") => void;
+  choose: (action: "skip" | "save" | "defer", expectedId?: string) => boolean;
+  isCurrent: (id: string) => boolean;
   undo: () => void;
   interest: () => void;
 };
@@ -72,15 +73,21 @@ export function createReaderStore() {
           next.queue.length !== current.queue.length ? [] : get().history,
         );
       },
-      choose: (action) => {
+      isCurrent: (id) => get().data.queue[0] === id,
+      choose: (action, expectedId) => {
         const { data, history } = get();
-        if (!data.queue.length) return;
+        if (
+          !data.queue.length ||
+          (expectedId !== undefined && data.queue[0] !== expectedId)
+        )
+          return false;
         const snapshot = {
           queue: data.queue,
           saved: data.saved,
           skipped: data.skipped,
         };
         update(selectStory(data, action), [...history, snapshot]);
+        return true;
       },
       undo: () => {
         const { data, history } = get();

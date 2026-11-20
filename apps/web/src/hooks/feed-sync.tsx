@@ -63,7 +63,12 @@ export async function fetchFeed(url: string): Promise<FeedResult> {
     else active--;
   }
 }
-type Status = { loading: boolean; error?: string; success?: boolean };
+type Status = {
+  loading: boolean;
+  error?: string;
+  success?: boolean;
+  failedAt?: string;
+};
 type FeedContextValue = {
   statuses: Record<string, Status>;
   setStatus: (url: string, status: Status) => void;
@@ -76,6 +81,7 @@ export function useFeedStatus() {
 }
 export function useFeed(sourceUrl: string) {
   const hydrated = useReaderStore((s) => s.hydrated);
+  const { setStatus } = useContext(FeedContext)!;
   const merge = useReaderStore((s) => s.merge);
   const feed = useSWR(hydrated ? sourceUrl : null, fetchFeed, {
     revalidateOnFocus: false,
@@ -83,6 +89,12 @@ export function useFeed(sourceUrl: string) {
     shouldRetryOnError: false,
     refreshInterval: 0,
     onSuccess: merge,
+    onError: (error: Error) =>
+      setStatus(sourceUrl, {
+        loading: false,
+        error: error.message,
+        failedAt: new Date().toISOString(),
+      }),
   });
   return feed;
 }
@@ -105,7 +117,7 @@ function SyncChildren({ children }: { children: ReactNode }) {
   const [statuses, setStatuses] = useState<Record<string, Status>>({});
   const setStatus = useCallback(
     (url: string, status: Status) =>
-      setStatuses((old) => ({ ...old, [url]: status })),
+      setStatuses((old) => ({ ...old, [url]: { ...old[url], ...status } })),
     [],
   );
   return (

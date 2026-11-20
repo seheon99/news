@@ -79,3 +79,17 @@ test("undo preserves interest and late feeds never revive selections or orphan n
   assert.deepEqual(store.getState().data.queue, ["three", "two"]);
   assert.ok(store.getState().data.saved.one);
 });
+
+test("a selection bound to the dragged story cannot affect a newly prepended story", () => {
+  const store = createReaderStore();
+  store.getState().hydrate(storage());
+  store.getState().merge(result(["one", "two"]));
+  const draggedId = store.getState().data.queue[0];
+  store.getState().merge(result(["one", "two", "three"]));
+  assert.equal(store.getState().choose("skip", draggedId), false);
+  assert.deepEqual(store.getState().data.queue, ["three", "one", "two"]);
+  assert.deepEqual(store.getState().data.skipped, []);
+  assert.equal(store.getState().choose("save", "three"), true);
+  assert.deepEqual(store.getState().data.queue, ["one", "two"]);
+  assert.ok(store.getState().data.saved.three);
+});
