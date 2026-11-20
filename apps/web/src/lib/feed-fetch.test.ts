@@ -21,6 +21,59 @@ test("rejects credentials, nonstandard ports, localhost and private IP literals"
   }
 });
 
+test("rejects IPv4-compatible IPv6 literals before connecting", async (t) => {
+  t.mock.method(http, "request", (() => {
+    throw new Error("unexpected connection");
+  }) as never);
+  for (const url of ["http://[::2]/", "http://[::a00:1]/"]) {
+    await assert.rejects(downloadFeed(url), { code: "INVALID_URL" });
+  }
+});
+
+test("rejects IPv4-compatible IPv6 DNS answers before connecting", async (t) => {
+  t.mock.method(
+    dns,
+    "lookup",
+    async () => [{ address: "::a00:1", family: 6 }] as never,
+  );
+  t.mock.method(http, "request", (() => {
+    throw new Error("unexpected connection");
+  }) as never);
+  await assert.rejects(downloadFeed("http://feed.example/"), {
+    code: "INVALID_URL",
+  });
+});
+
+test("rejects redirects to IPv4-compatible IPv6 literals", async (t) => {
+  t.mock.method(
+    dns,
+    "lookup",
+    async () => [{ address: "8.8.8.8", family: 4 }] as never,
+  );
+  t.mock.method(http, "request", ((
+    _url: unknown,
+    _options: unknown,
+    callback: (
+      res: Readable & { statusCode: number; headers: Record<string, string> },
+    ) => void,
+  ) => {
+    const request = new EventEmitter() as EventEmitter & { end: () => void };
+    request.end = () => {
+      const res = Readable.from([]) as Readable & {
+        statusCode: number;
+        headers: Record<string, string>;
+      };
+      res.statusCode = 302;
+      res.headers = { location: "http://[::2]/" };
+      callback(res);
+    };
+    return request;
+  }) as never);
+  await assert.rejects(downloadFeed("http://feed.example/"), {
+    code: "INVALID_URL",
+  });
+});
+
 test("rejects mixed public and private DNS results before connecting", async (t) => {
   t.mock.method(
     dns,
