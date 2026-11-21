@@ -421,6 +421,11 @@ input:focus-visible {
   user-select: none;
 }
 
+.story-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .story-description {
   min-height: 0;
   flex: 1;
@@ -437,8 +442,9 @@ input:focus-visible {
 .story-meta {
   display: flex;
   flex: none;
-  flex-direction: column;
-  gap: 6px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: auto;
   padding-top: 16px;
   color: var(--muted);
@@ -446,33 +452,39 @@ input:focus-visible {
   touch-action: none;
 }
 
-.story-meta a {
-  color: var(--secondary);
-  font-size: 13px;
-  font-weight: 600;
+.story-source {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.story-meta time {
+  flex: none;
+  white-space: nowrap;
 }
 
 .story-actions {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px minmax(0, 1fr) 44px;
   gap: 5px;
   padding: 14px 0 0;
 }
 
 .story-actions button {
   display: flex;
-  width: 20%;
+  width: 100%;
   min-width: 44px;
   min-height: 48px;
-  flex: 1 1 0;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 2px;
   border: 1px solid var(--border);
   border-radius: 16px;
   background: #fffdf7;
-  padding: 3px 1px;
+  padding: 3px;
   color: var(--secondary);
 }
 
@@ -489,10 +501,21 @@ input:focus-visible {
 }
 
 .story-actions button span {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+.story-actions button.story-action-button-with-label {
+  min-height: 56px;
+  flex-direction: column;
+  gap: 0;
+}
+
+.story-actions button.story-action-button-with-label svg {
+  width: 20px;
+  height: 20px;
 }
 
 .story-actions button[aria-pressed="true"] {

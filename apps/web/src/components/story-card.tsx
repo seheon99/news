@@ -2,8 +2,8 @@
 /* eslint-disable tailwindcss/no-custom-classname, @next/next/no-img-element */
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
-import { ArrowUpIcon, HeartIcon } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
+import { ArchiveBoxIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
+import { ArchiveBoxIcon as ArchiveBoxSolid } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/button";
 import { gestureAction } from "@/lib/gesture";
 import { useReaderStore } from "@/stores/reader-provider";
@@ -163,8 +163,16 @@ export function StoryCard() {
             }}
           >
             <div className="story-card-content">
-              <h1 data-no-drag tabIndex={0} className="story-title">
-                {story.title}
+              <h1 data-no-drag className="story-title">
+                <a
+                  data-no-drag
+                  href={story.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {story.title}
+                </a>
               </h1>
               <p
                 data-no-drag
@@ -181,15 +189,6 @@ export function StoryCard() {
                     ? new Date(story.publishedAt).toLocaleDateString("ko-KR")
                     : "날짜 정보 없음"}
                 </time>
-                <a
-                  data-no-drag
-                  href={story.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  원문 보기 ↗
-                </a>
               </div>
             </div>
           </article>
@@ -217,7 +216,7 @@ export function StoryCard() {
             label: "직전 선택 되돌리기",
             icon: <img src="/figma/undo.svg" width="24" height="24" alt="" />,
             disabled: !history.length,
-            shortLabel: "되돌리기",
+            visibleLabel: undefined,
             run: () => {
               undo();
               setMessage("직전 선택을 되돌렸어요.");
@@ -225,31 +224,27 @@ export function StoryCard() {
           },
           {
             label: "안 읽기",
-            icon: (
-              <img src="/figma/discard.svg" width="24" height="24" alt="" />
-            ),
+            icon: null,
             disabled: !story,
-            shortLabel: "안읽기",
+            visibleLabel: "안 읽기",
             run: () => act("skip"),
           },
           {
             label: "큐 맨 뒤로 보류",
             icon: <ArrowUpIcon />,
             disabled: !story,
-            shortLabel: "보류",
+            visibleLabel: undefined,
             run: () => act("defer"),
           },
           {
-            label: liked ? "관심 표시 취소" : "관심 표시",
-            icon: liked ? <HeartSolid /> : <HeartIcon />,
+            label: liked ? "챙기기 취소" : "챙기기",
+            icon: liked ? <ArchiveBoxSolid /> : <ArchiveBoxIcon />,
             disabled: !story,
-            shortLabel: "관심",
+            visibleLabel: "챙기기",
             pressed: liked,
             run: () => {
               interest();
-              setMessage(
-                liked ? "관심 표시를 취소했어요." : "관심을 표시했어요.",
-              );
+              setMessage(liked ? "챙기기를 취소했어요." : "챙겼어요.");
             },
           },
           {
@@ -258,7 +253,7 @@ export function StoryCard() {
               <img src="/figma/bookmark.svg" width="24" height="24" alt="" />
             ),
             disabled: !story,
-            shortLabel: "저장",
+            visibleLabel: undefined,
             run: () => act("save"),
           },
         ].map((a) => (
@@ -270,10 +265,10 @@ export function StoryCard() {
             disabled={a.disabled}
             onClick={a.run}
             variant="outline"
-            className="story-action-button"
+            className={`story-action-button ${a.visibleLabel ? "story-action-button-with-label" : ""}`}
           >
             {a.icon}
-            <span>{a.shortLabel}</span>
+            {a.visibleLabel && <span>{a.visibleLabel}</span>}
           </Button>
         ))}
       </div>
