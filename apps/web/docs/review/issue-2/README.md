@@ -4,6 +4,8 @@ The screenshots below show the current application after the [Figma refresh](htt
 
 Captures use synthetic Korean stories in an isolated browser context. Requests to `/api/feed` are intercepted for controlled success/failure states. No Gmail account, personal feed, real subscription, or existing browser storage is used. Fonts finish loading before capture and the development badge is hidden.
 
+Typography uses self-hosted Maru Buri Regular (400), SemiBold (600), and Bold (700) throughout the application. The unmodified WOFF2 files come from [Naver's official distribution](https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css), with the [copyright notice and OFL license](../../../public/fonts/MaruBuri-OFL.txt) included. They replace the previous Noto fonts.
+
 ## Current application
 
 - [Feed](screenshots/implemented-reader-mobile.png)
