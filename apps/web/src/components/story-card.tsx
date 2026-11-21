@@ -219,7 +219,6 @@ export function StoryCard() {
             icon: <XMarkIcon />,
             disabled: !story,
             color: "text-rose-500",
-            large: true,
             run: () => act("skip"),
           },
           {
@@ -234,7 +233,6 @@ export function StoryCard() {
             icon: liked ? <HeartSolid /> : <HeartIcon />,
             disabled: !story,
             color: liked ? "bg-emerald-500 text-white" : "text-emerald-500",
-            large: true,
             pressed: liked,
             run: () => {
               interest();
@@ -259,7 +257,7 @@ export function StoryCard() {
             disabled={a.disabled}
             onClick={a.run}
             variant="outline"
-            className={`size-12 shrink-0 rounded-full p-3 shadow-sm sm:size-[58px] ${a.large ? "size-[60px] sm:size-[68px]" : ""} ${a.color}`}
+            className={`size-12 min-w-0 shrink-0 rounded-full p-2 shadow-sm sm:size-[58px] sm:p-3 [&_svg]:size-6 ${a.color}`}
           >
             {a.icon}
           </Button>
