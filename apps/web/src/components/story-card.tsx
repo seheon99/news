@@ -7,7 +7,7 @@ import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/button";
 import { gestureAction } from "@/lib/gesture";
 import { useReaderStore } from "@/stores/reader-provider";
-import { useFeedMutate, useFeedStatus } from "@/hooks/feed-sync";
+import { useFeedStatus } from "@/hooks/feed-sync";
 
 type Action = "skip" | "save" | "defer";
 export function StoryCard() {
@@ -19,7 +19,6 @@ export function StoryCard() {
   const interest = useReaderStore((s) => s.interest);
   const history = useReaderStore((s) => s.history);
   const statuses = useFeedStatus();
-  const mutate = useFeedMutate();
   const [message, setMessage] = useState("");
   const [announcement, setAnnouncement] = useState(0);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -282,23 +281,11 @@ export function StoryCard() {
         {message || (loading ? "새 소식을 확인하고 있어요." : "")}
         <span className="sr-only"> 선택 {announcement}</span>
       </p>
-      <div className="story-feed-status">
-        {failed > 0 && (
+      {failed > 0 && (
+        <div className="story-feed-status">
           <Link href="/settings">출처 {failed}개를 불러오지 못했어요</Link>
-        )}{" "}
-        {data.sources.length > 0 && (
-          <button
-            className="ml-2 underline"
-            onClick={() => {
-              data.sources.forEach((s) => void mutate(s.url));
-              setMessage("새 소식을 확인하고 있어요.");
-            }}
-          >
-            <img src="/figma/refresh.svg" width="16" height="16" alt="" /> 전체
-            새로고침
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

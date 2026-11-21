@@ -63,8 +63,11 @@ input:focus-visible {
 
 .reader-shell {
   display: flex;
+  width: 100%;
+  max-width: 420px;
   min-height: 100dvh;
   flex-direction: column;
+  margin-inline: auto;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -497,7 +500,6 @@ input:focus-visible {
   text-align: center;
 }
 
-.story-feed-status button,
 .story-feed-status a {
   color: var(--secondary);
   text-decoration: underline;
