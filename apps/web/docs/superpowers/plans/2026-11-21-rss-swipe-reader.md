@@ -115,9 +115,9 @@
 
 ### Task 4: End-to-End Verification and Handoff
 
-- [ ] Exercise registration, invalid/duplicate feeds, automatic refresh, individual failure/retry, all five card controls, original links, and page reload using controlled RSS/Atom fixtures.
-- [ ] Verify mobile and desktop layouts, long titles/descriptions, touch versus text scrolling, empty queue undo, unavailable localStorage, and delayed concurrent refresh results. If browser automation is unavailable, report the exact unverified flows.
-- [ ] Update README with Yarn commands, browser-local storage behavior, supported feeds, server limits, and excluded features.
-- [ ] Run `yarn test`, `yarn lint`, `yarn format:check`, `yarn typecheck`, and `yarn build`; require all to pass.
-- [ ] Review the final diff for generated files, unintended changes, personal data, missing error paths, and scope creep. Record any remaining limitations.
-- [ ] Present the implementation and verification evidence on the feature branch. Do not merge, deploy, close issue #2, or push without authorization for that action.
+- [x] Exercise registration, invalid/duplicate feeds, automatic refresh, individual failure/retry, all five card controls, original links, and page reload using controlled RSS/Atom fixtures.
+- [x] Verify mobile and desktop layouts, long titles/descriptions, touch versus text scrolling, empty queue undo, unavailable localStorage, and delayed concurrent refresh results. If browser automation is unavailable, report the exact unverified flows.
+- [x] Update README with Yarn commands, browser-local storage behavior, supported feeds, server limits, and excluded features.
+- [x] Run `yarn test`, `yarn lint`, `yarn format:check`, `yarn typecheck`, and `yarn build`; require all to pass.
+- [x] Review the final diff for generated files, unintended changes, personal data, missing error paths, and scope creep. Record any remaining limitations.
+- [x] Present the implementation and verification evidence on the feature branch. Do not merge, deploy, close issue #2, or push without authorization for that action.
