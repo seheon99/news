@@ -22,10 +22,12 @@ export default function Saved() {
               className="saved-card"
             >
               <h2>{story.title}</h2>
-              <p className="saved-source">{story.sourceTitle}</p>
-              <p className="saved-date">
-                {new Date(date).toLocaleDateString("ko-KR")} 저장 · 원문 읽기 ↗
-              </p>
+              <div className="saved-meta">
+                <span className="saved-source">{story.sourceTitle}</span>
+                <time className="saved-date">
+                  {new Date(date).toLocaleDateString("ko-KR")}
+                </time>
+              </div>
             </a>
           );
         })

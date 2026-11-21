@@ -10,6 +10,8 @@ Typography uses self-hosted Maru Buri Regular (400), SemiBold (600), and Bold (7
 
 Feed actions use icon-only Undo, Defer, and Save controls, with wider text buttons for Skip and Collect (챙기기). Collect retains the independent selection toggle and uses an archive icon. The story footer shows only the source on the left and publication date on the right; tapping the card still opens the original article.
 
+Saved cards also place the source and date at opposite footer edges without an extra original-article label or decorative arrow. Subscription rows follow the Figma RSS list composition; failures use concise guidance and retry instead of technical errors or collection history.
+
 - [Feed](screenshots/implemented-reader-mobile.png)
 - [Saved stories](screenshots/implemented-saved-mobile.png)
 - [Subscriptions with controlled feed failure](screenshots/implemented-settings-failure-mobile.png)

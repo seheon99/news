@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fetchFeed, useFeedMutate, useFeedStatus } from "@/hooks/feed-sync";
 import { useReaderStore } from "@/stores/reader-provider";
+
 export default function Settings() {
   const data = useReaderStore((s) => s.data);
   const merge = useReaderStore((s) => s.merge);
@@ -13,6 +14,7 @@ export default function Settings() {
   const [url, setUrl] = useState("");
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
+
   async function register(event: FormEvent) {
     event.preventDefault();
     let normalized: string;
@@ -43,92 +45,89 @@ export default function Settings() {
       await mutate(normalized, result, { revalidate: false });
       setUrl("");
       setFeedback("구독을 등록했어요.");
-    } catch (error) {
+    } catch {
       setFeedback(
-        error instanceof Error ? error.message : "피드를 가져오지 못했어요.",
+        "출처를 추가하지 못했어요. RSS 주소를 확인하고 다시 시도해 주세요.",
       );
     } finally {
       setBusy(false);
     }
   }
+
   return (
     <section className="settings-page">
-      <section className="settings-card">
-        <h2 className="settings-title">새 출처 등록</h2>
-        <p className="settings-intro">
-          새 소식을 받아볼 RSS 또는 Atom 피드를 등록하세요.
+      <form className="settings-feed-form" onSubmit={register}>
+        <label htmlFor="feed-url" className="settings-title">
+          RSS 피드 추가
+        </label>
+        <div className="settings-form-row">
+          <Input
+            id="feed-url"
+            type="url"
+            required
+            placeholder="RSS 또는 Atom 링크 붙여넣기"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+          <Button disabled={busy} type="submit">
+            추가
+          </Button>
+        </div>
+        <p role="status" className="settings-feedback">
+          {feedback}
         </p>
-        <form onSubmit={register}>
-          <label htmlFor="feed-url" className="settings-label">
-            RSS / Atom 피드 URL
-          </label>
-          <div className="settings-form-row">
-            <Input
-              id="feed-url"
-              type="url"
-              required
-              placeholder="https://example.com/feed.xml"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-            <Button disabled={busy} type="submit">
-              구독 등록
-            </Button>
-          </div>
-          <p role="status" className="settings-feedback">
-            {feedback}
-          </p>
-        </form>
-      </section>
+      </form>
       <section className="settings-sources">
-        <h2 className="settings-title">등록한 출처</h2>
+        <h2 className="settings-title">
+          RSS <span>{data.sources.length}</span>
+        </h2>
         {data.sources.length === 0 && (
           <p className="settings-empty">등록한 출처가 없어요.</p>
         )}
-        {data.sources.map((source) => {
-          const status = statuses[source.url];
-          return (
-            <div key={source.url} className="source-card">
-              <strong>{source.title}</strong>
-              <p className="source-url">{source.url}</p>
-              <p
-                className={`source-status ${status?.error ? "has-error" : ""}`}
-              >
-                {status?.loading || !status
-                  ? "확인 중…"
-                  : status.error
-                    ? `실패: ${status.error} 기존 소식은 보관되어 있어요.`
-                    : "수집 성공"}
-              </p>
-              <p className="source-meta">
-                {status?.error && status.failedAt && (
-                  <>
-                    마지막 실패:{" "}
-                    {new Date(status.failedAt).toLocaleString("ko-KR")} ·{" "}
-                  </>
-                )}
-                마지막 성공:{" "}
-                {source.lastFetchedAt
-                  ? new Date(source.lastFetchedAt).toLocaleString("ko-KR")
-                  : "없음"}
-                {source.excludedCount > 0 &&
-                  ` · 제외된 항목 ${source.excludedCount}개`}
-              </p>
-              <Button
-                variant="outline"
-                className="mt-2"
-                disabled={status?.loading}
-                onClick={() => void mutate(source.url)}
-              >
-                다시 시도
-              </Button>
-            </div>
-          );
-        })}
+        {data.sources.length > 0 && (
+          <div className="source-list">
+            {data.sources.map((source) => {
+              const status = statuses[source.url];
+              const host = (() => {
+                try {
+                  return new URL(source.url).hostname;
+                } catch {
+                  return source.url;
+                }
+              })();
+              const subtitle = status?.error
+                ? "새 소식을 가져오지 못했어요. 잠시 후 다시 시도해 주세요."
+                : status?.loading || !status
+                  ? `${host} · 새 소식을 확인하고 있어요.`
+                  : `${host}${source.lastFetchedAt ? ` · ${new Date(source.lastFetchedAt).toLocaleDateString("ko-KR")} 업데이트` : " · 새 소식을 확인했어요."}`;
+              return (
+                <div key={source.url} className="source-row">
+                  <span className="source-avatar" aria-hidden="true">
+                    {source.title.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <div className="source-details">
+                    <strong>{source.title}</strong>
+                    <p
+                      className={`source-status ${status?.error ? "has-error" : ""}`}
+                    >
+                      {subtitle}
+                    </p>
+                  </div>
+                  {status?.error && (
+                    <Button
+                      variant="outline"
+                      disabled={status.loading}
+                      onClick={() => void mutate(source.url)}
+                    >
+                      다시 시도
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
-      <p className="settings-disclosure">
-        구독과 선택 기록은 현재 브라우저에 보관됩니다.
-      </p>
     </section>
   );
 }
