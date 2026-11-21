@@ -23,6 +23,7 @@ const error = (code: string) =>
         TIMEOUT: "피드 요청 시간이 초과되었습니다.",
         TOO_LARGE: "피드 크기가 너무 큽니다.",
         TOO_MANY_REDIRECTS: "피드의 이동 횟수가 너무 많습니다.",
+        UNSUPPORTED_ENCODING: "지원하지 않는 피드 문자 인코딩입니다.",
       } as Record<string, string>
     )[code] ?? "피드를 가져오지 못했습니다.",
   );
@@ -36,6 +37,41 @@ function isPublic(address: string): boolean {
   )
     return false;
   return ipaddr.process(address).range() === "unicast";
+}
+
+function decodeFeed(body: Buffer, contentType?: string): string {
+  const bytes = body.subarray(0, 512);
+  const bom =
+    body[0] === 0xef && body[1] === 0xbb && body[2] === 0xbf
+      ? "utf-8"
+      : body[0] === 0xff && body[1] === 0xfe
+        ? "utf-16le"
+        : body[0] === 0xfe && body[1] === 0xff
+          ? "utf-16be"
+          : bytes[0] === 0x3c &&
+              bytes[1] === 0 &&
+              bytes[2] === 0x3f &&
+              bytes[3] === 0
+            ? "utf-16le"
+            : bytes[0] === 0 &&
+                bytes[1] === 0x3c &&
+                bytes[2] === 0 &&
+                bytes[3] === 0x3f
+              ? "utf-16be"
+              : undefined;
+  const httpCharset = contentType?.match(
+    /\bcharset\s*=\s*["']?([^\s;"']+)/i,
+  )?.[1];
+  const declarationPrefix = new TextDecoder(bom ?? "utf-8").decode(bytes);
+  const xmlCharset = declarationPrefix.match(
+    /^\s*<\?xml\b[^>]*\bencoding\s*=\s*["']([^"']+)["']/i,
+  )?.[1];
+  const encoding = bom ?? httpCharset ?? xmlCharset ?? "utf-8";
+  try {
+    return new TextDecoder(encoding, { fatal: true }).decode(body);
+  } catch {
+    throw error("UNSUPPORTED_ENCODING");
+  }
 }
 
 export function normalizeFeedUrl(value: string): string {
@@ -92,6 +128,7 @@ export async function downloadFeed(
       const response = await new Promise<{
         status: number;
         location?: string;
+        contentType?: string;
         body: Buffer;
       }>((resolve, reject) => {
         const request = (
@@ -134,7 +171,11 @@ export async function downloadFeed(
               } else chunks.push(chunk);
             });
             res.on("end", () =>
-              resolve({ status, body: Buffer.concat(chunks) }),
+              resolve({
+                status,
+                contentType: res.headers["content-type"],
+                body: Buffer.concat(chunks),
+              }),
             );
             res.on("error", reject);
           },
@@ -152,7 +193,7 @@ export async function downloadFeed(
         }
         continue;
       }
-      return { xml: response.body.toString("utf8"), url };
+      return { xml: decodeFeed(response.body, response.contentType), url };
     }
   } catch (cause) {
     if (controller.signal.aborted) throw error("TIMEOUT");

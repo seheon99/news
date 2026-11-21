@@ -164,3 +164,103 @@ test("rejects malformed and excessive length URLs", async () => {
   ])
     await assert.rejects(downloadFeed(url), { code: "INVALID_URL" });
 });
+
+test("decodes feeds using HTTP charset, XML declarations, and UTF-16 BOMs", async (t) => {
+  t.mock.method(
+    dns,
+    "lookup",
+    async () => [{ address: "8.8.8.8", family: 4 }] as never,
+  );
+  const responses = [
+    {
+      body: Buffer.from(
+        '<?xml version="1.0" encoding="ISO-8859-1"?><rss><channel><title>Caf\u00e9 R\u00e9sum\u00e9</title></channel></rss>',
+        "latin1",
+      ),
+      headers: { "content-type": "application/rss+xml" },
+      expected: "Café Résumé",
+    },
+    {
+      body: Buffer.from(
+        "<rss><channel><title>Caf\u00e9</title></channel></rss>",
+        "latin1",
+      ),
+      headers: { "content-type": "application/rss+xml; charset=ISO-8859-1" },
+      expected: "Café",
+    },
+    {
+      body: Buffer.concat([
+        Buffer.from([0xff, 0xfe]),
+        Buffer.from(
+          "<rss><channel><title>한글</title></channel></rss>",
+          "utf16le",
+        ),
+      ]),
+      headers: { "content-type": "application/rss+xml" },
+      expected: "한글",
+    },
+  ];
+  let current = 0;
+  t.mock.method(http, "request", ((
+    _url: unknown,
+    _options: unknown,
+    callback: (
+      res: Readable & {
+        statusCode: number;
+        headers: Record<string, string>;
+      },
+    ) => void,
+  ) => {
+    const response = responses[current++];
+    const request = new EventEmitter() as EventEmitter & { end: () => void };
+    request.end = () => {
+      const res = Readable.from([response.body]) as Readable & {
+        statusCode: number;
+        headers: Record<string, string>;
+      };
+      res.statusCode = 200;
+      res.headers = response.headers;
+      callback(res);
+    };
+    return request;
+  }) as never);
+  for (const response of responses) {
+    const result = await downloadFeed("http://feed.example/");
+    assert.match(result.xml, new RegExp(response.expected));
+  }
+});
+
+test("rejects unsupported feed encodings without decoding corrupted text", async (t) => {
+  t.mock.method(
+    dns,
+    "lookup",
+    async () => [{ address: "8.8.8.8", family: 4 }] as never,
+  );
+  t.mock.method(http, "request", ((
+    _url: unknown,
+    _options: unknown,
+    callback: (
+      res: Readable & {
+        statusCode: number;
+        headers: Record<string, string>;
+      },
+    ) => void,
+  ) => {
+    const request = new EventEmitter() as EventEmitter & { end: () => void };
+    request.end = () => {
+      const res = Readable.from([Buffer.from("feed")]) as Readable & {
+        statusCode: number;
+        headers: Record<string, string>;
+      };
+      res.statusCode = 200;
+      res.headers = {
+        "content-type": "application/rss+xml; charset=x-unknown",
+      };
+      callback(res);
+    };
+    return request;
+  }) as never);
+  await assert.rejects(downloadFeed("http://feed.example/"), {
+    code: "UNSUPPORTED_ENCODING",
+  });
+});

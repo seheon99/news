@@ -26,6 +26,7 @@ export function StoryCard() {
   const statuses = useFeedStatus();
   const mutate = useFeedMutate();
   const [message, setMessage] = useState("");
+  const [announcement, setAnnouncement] = useState(0);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const drag = useRef<{
     x: number;
@@ -40,15 +41,21 @@ export function StoryCard() {
     (s) => !statuses[s.url] || statuses[s.url].loading,
   );
   const failed = data.sources.filter((s) => statuses[s.url]?.error).length;
+  function announce(action: Action, title: string) {
+    setAnnouncement((id) => id + 1);
+    setMessage(
+      `${
+        {
+          skip: "안 읽기로 선택했어요.",
+          save: "저장했어요.",
+          defer: "맨 뒤로 보류했어요.",
+        }[action]
+      } ${title}`,
+    );
+  }
   function act(action: Action, expectedId?: string) {
     if (!choose(action, expectedId)) return;
-    setMessage(
-      {
-        skip: "안 읽기로 선택했어요.",
-        save: "저장했어요.",
-        defer: "맨 뒤로 보류했어요.",
-      }[action],
-    );
+    announce(action, data.stories[expectedId ?? data.queue[0]]?.title ?? "");
   }
   useEffect(() => {
     function key(e: KeyboardEvent) {
@@ -57,19 +64,20 @@ export function StoryCard() {
         e.target.closest("input, textarea, button, a, select")
       )
         return;
+      if (
+        e.altKey ||
+        e.shiftKey ||
+        (e.ctrlKey && e.key !== "z") ||
+        (e.metaKey && e.key !== "z")
+      )
+        return;
       const action = (
         { ArrowLeft: "skip", ArrowRight: "save", ArrowUp: "defer" } as const
       )[e.key as "ArrowLeft"];
       if (action && story) {
         e.preventDefault();
         choose(action);
-        setMessage(
-          {
-            skip: "안 읽기로 선택했어요.",
-            save: "저장했어요.",
-            defer: "맨 뒤로 보류했어요.",
-          }[action],
-        );
+        announce(action, story.title);
       } else if ((e.ctrlKey || e.metaKey) && e.key === "z") {
         e.preventDefault();
         undo();
@@ -262,6 +270,7 @@ export function StoryCard() {
         className="mt-3 min-h-8 text-center text-xs text-[#7e8796]"
       >
         {message || (loading ? "새 소식을 확인하고 있어요." : "")}
+        <span className="sr-only"> 선택 {announcement}</span>
       </p>
       <div className="text-center text-xs text-[#7e8796]">
         {failed > 0 && (
