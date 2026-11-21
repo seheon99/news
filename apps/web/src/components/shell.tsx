@@ -14,6 +14,7 @@ const tabs = [
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
+  const activeTab = tabs.findIndex(([href]) => href === path);
   const data = useReaderStore((s) => s.data);
   const error = useReaderStore((s) => s.storageError);
   const [title, count] =
@@ -45,7 +46,11 @@ export function Shell({ children }: { children: ReactNode }) {
         {error && <Alert className="mb-4">{error}</Alert>}
         {children}
       </main>
-      <nav className="reader-tabs" aria-label="주 메뉴">
+      <nav
+        className="reader-tabs"
+        aria-label="주 메뉴"
+        data-active-index={activeTab >= 0 ? activeTab : undefined}
+      >
         {tabs.map(([href, label]) => (
           <Link
             key={href}

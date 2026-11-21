@@ -122,6 +122,7 @@ input:focus-visible {
 }
 
 .reader-tabs {
+  position: relative;
   display: flex;
   width: min(240px, calc(100% - 40px));
   flex: none;
@@ -134,7 +135,38 @@ input:focus-visible {
   background: #fffdf7;
 }
 
+.reader-tabs::before {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  left: 4px;
+  width: calc((100% - 16px) / 3);
+  height: 40px;
+  border-radius: 999px;
+  background: #eeeee5;
+  content: "";
+  pointer-events: none;
+  transform: translateX(calc(var(--active-index, -1) * (100% + 4px)));
+  transition: transform 200ms ease;
+}
+
+.reader-tabs:not([data-active-index])::before {
+  content: none;
+}
+
+.reader-tabs[data-active-index="0"] {
+  --active-index: 0;
+}
+.reader-tabs[data-active-index="1"] {
+  --active-index: 1;
+}
+.reader-tabs[data-active-index="2"] {
+  --active-index: 2;
+}
+
 .reader-tab {
+  position: relative;
+  z-index: 1;
   display: flex;
   min-width: 0;
   min-height: 40px;
@@ -150,9 +182,14 @@ input:focus-visible {
 }
 
 .reader-tab.is-active {
-  background: #eeeee5;
   color: var(--foreground);
   font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-tabs::before {
+    transition: none;
+  }
 }
 
 .saved-list,
