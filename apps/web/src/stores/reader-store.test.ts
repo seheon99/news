@@ -19,31 +19,44 @@ const story = (id: string) => ({
 });
 const result = (ids: string[]) => ({ source, stories: ids.map(story) });
 function storage(initial: string | null = null, fail = false) {
-  let value = initial;
+  const values = new Map(initial === null ? [] : [[STORAGE_KEY, initial]]);
   return {
-    getItem: () => value,
-    setItem: (_key: string, next: string) => {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, next: string) => {
       if (fail) throw Error("quota");
-      value = next;
+      values.set(key, next);
     },
-    read: () => value,
+    read: () => values.get(STORAGE_KEY) ?? null,
   };
 }
 
-test("stores are isolated and restore persisted selection", () => {
+test("reload restores every selection and source record, but starts with no undo history", () => {
   const disk = storage();
-  const a = createReaderStore();
-  const b = createReaderStore();
-  a.getState().hydrate(disk);
-  b.getState().hydrate(storage());
-  a.getState().merge(result(["one", "two"]));
-  a.getState().choose("save");
-  assert.deepEqual(b.getState().data.queue, []);
+  const store = createReaderStore();
+  const isolated = createReaderStore();
+  store.getState().hydrate(disk);
+  isolated.getState().hydrate(storage());
+  store.getState().merge(result(["one", "two", "three", "four"]));
+  store.getState().choose("save");
+  store.getState().choose("skip");
+  store.getState().choose("defer");
+  store.getState().interest();
+  const beforeReload = store.getState().data;
+  assert.deepEqual(beforeReload.queue, ["four", "three"]);
+  assert.deepEqual(Object.keys(beforeReload.saved), ["one"]);
+  assert.deepEqual(beforeReload.skipped, ["two"]);
+  assert.deepEqual(Object.keys(beforeReload.interests), ["four"]);
+  assert.deepEqual(beforeReload.sources, [source]);
+  assert.deepEqual(isolated.getState().data.queue, []);
+  assert.equal(disk.read(), JSON.stringify(beforeReload));
   const restored = createReaderStore();
   restored.getState().hydrate(disk);
-  assert.deepEqual(restored.getState().data.queue, ["two"]);
-  assert.ok(restored.getState().data.saved.one);
-  assert.ok(STORAGE_KEY);
+  assert.deepEqual(restored.getState().data, beforeReload);
+  assert.deepEqual(restored.getState().history, []);
+  assert.equal(restored.getState().hydrated, true);
+  assert.equal(restored.getState().storageError, null);
+  restored.getState().undo();
+  assert.deepEqual(restored.getState().data, beforeReload);
 });
 
 test("corrupt storage is preserved and write failures are visible", () => {
@@ -92,4 +105,92 @@ test("a selection bound to the dragged story cannot affect a newly prepended sto
   assert.equal(store.getState().choose("save", "three"), true);
   assert.deepEqual(store.getState().data.queue, ["one", "two"]);
   assert.ok(store.getState().data.saved.three);
+});
+
+for (const action of ["save", "skip", "defer"] as const) {
+  test(`undo reverses ${action}, preserves later interest, and persists the restored state`, () => {
+    const disk = storage();
+    const store = createReaderStore();
+    store.getState().hydrate(disk);
+    store.getState().merge(result(["one", "two", "three"]));
+    const before = store.getState().data;
+    assert.equal(store.getState().choose(action), true);
+    assert.deepEqual(
+      store.getState().data.queue,
+      action === "defer" ? ["two", "three", "one"] : ["two", "three"],
+    );
+    assert.deepEqual(
+      Object.keys(store.getState().data.saved),
+      action === "save" ? ["one"] : [],
+    );
+    assert.deepEqual(
+      store.getState().data.skipped,
+      action === "skip" ? ["one"] : [],
+    );
+    store.getState().interest();
+    const interests = store.getState().data.interests;
+    assert.deepEqual(Object.keys(interests), ["two"]);
+    store.getState().undo();
+    const expected = { ...before, interests };
+    assert.deepEqual(store.getState().data, expected);
+    assert.deepEqual(store.getState().history, []);
+    const restored = createReaderStore();
+    restored.getState().hydrate(disk);
+    assert.deepEqual(restored.getState().data, expected);
+  });
+}
+
+test("independently arriving feed results merge into the latest saved and deferred state", () => {
+  const disk = storage();
+  const store = createReaderStore();
+  store.getState().hydrate(disk);
+  store.getState().merge(result(["one", "two", "three"]));
+  store.getState().choose("save");
+  store.getState().choose("defer");
+  const saved = store.getState().data.saved;
+  const secondSource = {
+    ...source,
+    url: "https://other.example/feed",
+    title: "Other",
+  };
+  const otherStory = {
+    ...story("other"),
+    sourceUrl: secondSource.url,
+    sourceTitle: secondSource.title,
+  };
+  store.getState().merge({ source: secondSource, stories: [otherStory] });
+  store.getState().merge(result(["one", "two", "three"]));
+  assert.deepEqual(store.getState().data.queue, ["other", "three", "two"]);
+  assert.deepEqual(store.getState().data.saved, saved);
+  assert.deepEqual(store.getState().data.sources, [source, secondSource]);
+  assert.deepEqual(store.getState().data.stories, {
+    one: story("one"),
+    two: story("two"),
+    three: story("three"),
+    other: otherStory,
+  });
+  assert.deepEqual(store.getState().history, []);
+  const restored = createReaderStore();
+  restored.getState().hydrate(disk);
+  assert.deepEqual(restored.getState().data, store.getState().data);
+});
+
+test("blocked storage reads remain visible and are never followed by destructive writes", () => {
+  const store = createReaderStore();
+  let writes = 0;
+  store.getState().hydrate({
+    getItem: () => {
+      throw Error("access denied");
+    },
+    setItem: () => {
+      writes++;
+    },
+  });
+  assert.equal(store.getState().hydrated, true);
+  assert.equal(typeof store.getState().storageError, "string");
+  store.getState().merge(result(["one", "two"]));
+  store.getState().choose("save");
+  store.getState().undo();
+  assert.deepEqual(store.getState().data.queue, ["one", "two"]);
+  assert.equal(writes, 0);
 });
