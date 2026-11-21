@@ -1,51 +1,62 @@
 "use client";
+/* eslint-disable tailwindcss/no-custom-classname, @next/next/no-img-element */
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useReaderStore } from "@/stores/reader-provider";
 import { Alert } from "@/components/ui/alert";
+
+const tabs = [
+  ["/", "피드"],
+  ["/saved", "보관함"],
+  ["/settings", "구독"],
+] as const;
+
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
-  const saved = useReaderStore((s) => Object.keys(s.data.saved).length);
+  const data = useReaderStore((s) => s.data);
   const error = useReaderStore((s) => s.storageError);
+  const [title, count] =
+    path === "/saved"
+      ? ["보관함", Object.keys(data.saved).length]
+      : path === "/settings"
+        ? ["구독", data.sources.length]
+        : ["받은 항목", data.queue.length];
+
   return (
-    <>
-      <header className="border-b border-[#e8eaf0] bg-white">
-        <nav
-          aria-label="주 메뉴"
-          className="mx-auto flex max-w-170 items-center gap-5 px-5 py-3 sm:gap-6 sm:px-6 sm:py-4"
-        >
-          <Link
-            href="/"
-            className="mr-auto text-[28px] font-extrabold tracking-tight text-[#f14c71]"
-          >
-            모아.
-          </Link>
-          {[
-            ["/", "탐색"],
-            ["/saved", "저장"],
-            ["/settings", "구독 설정"],
-          ].map(([href, label]) => (
+    <div className="reader-shell">
+      <header className="reader-header">
+        <div className="reader-header-inner">
+          <h1 className="reader-heading">
+            {title} <span>{count}</span>
+          </h1>
+          {path !== "/settings" && (
             <Link
-              key={href}
-              href={href}
-              aria-current={path === href ? "page" : undefined}
-              className={`text-sm font-semibold whitespace-nowrap ${path === href ? "text-[#ef4e75]" : "text-[#8a93a1]"}`}
+              href="/settings"
+              className="reader-settings"
+              aria-label="구독 설정"
             >
-              {label}
-              {href === "/saved" && (
-                <span className="ml-1 rounded-xl bg-[#fff0f4] px-1.5 text-[11px]">
-                  {saved}
-                </span>
-              )}
+              <img src="/figma/settings.svg" alt="" width="24" height="24" />
             </Link>
-          ))}
-        </nav>
+          )}
+        </div>
       </header>
-      <main className="mx-auto max-w-145 px-3.5 pt-3.5 sm:px-6 sm:pt-[22px]">
+      <main className="reader-main">
         {error && <Alert className="mb-4">{error}</Alert>}
         {children}
       </main>
-    </>
+      <nav className="reader-tabs" aria-label="주 메뉴">
+        {tabs.map(([href, label]) => (
+          <Link
+            key={href}
+            href={href}
+            aria-current={path === href ? "page" : undefined}
+            className={path === href ? "reader-tab is-active" : "reader-tab"}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
+    </div>
   );
 }

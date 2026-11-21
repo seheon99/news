@@ -1,5 +1,7 @@
 # UI design audit
 
+Historical snapshot: this audit assessed commit `11bc66ee23581494855cf3a749cb964b26a16f83` before the subsequent Figma presentation refresh. Its totals describe that version, not the current Figma implementation. The linked source paths now contain the newer presentation; use that commit when reproducing the original findings.
+
 Reviewed 2026-11-21 against the [complete visible catalog](https://www.uidesign.tips/ui-tips): **39 cards, 37 unique destination URLs, 38 distinct pieces of advice**. The alignment tip appears twice. “Visually Distinguish Elements” incorrectly links to Social Login; its advice is assessed from the catalog and linked there below. All 37 destinations were opened; relevant individual text was read. The retrieved index exposes no pagination/load-more control. Its “100+” marketing claim does not establish 100 audited tips; unlisted material is outside this inventory.
 
 These are contextual design heuristics, not universal requirements or an accessibility certification. **Meets** means the applicable advice is supported by inspected evidence; **Partial** identifies a remaining limitation; **Fails** identifies a concrete gap; **N/A** identifies an absent feature or unsuitable context.

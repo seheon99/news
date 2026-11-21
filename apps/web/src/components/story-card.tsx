@@ -1,13 +1,8 @@
 "use client";
+/* eslint-disable tailwindcss/no-custom-classname, @next/next/no-img-element */
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
-import {
-  ArrowPathIcon,
-  ArrowUpIcon,
-  BookmarkIcon,
-  HeartIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowUpIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/button";
 import { gestureAction } from "@/lib/gesture";
@@ -61,7 +56,7 @@ export function StoryCard() {
     function key(e: KeyboardEvent) {
       if (
         e.target instanceof HTMLElement &&
-        e.target.closest("input, textarea, button, a, select")
+        e.target.closest("input, textarea, button, a, select, [data-no-drag]")
       )
         return;
       if (
@@ -134,81 +129,96 @@ export function StoryCard() {
             ? "모든 소식을 살펴봤어요."
             : "아직 받아온 소식이 없어요.";
   return (
-    <div className="mx-auto max-w-[470px]">
+    <div className="relative mx-auto max-w-[470px] overflow-x-clip">
       {story ? (
-        <article
-          onPointerDown={down}
-          onPointerMove={move}
-          onPointerUp={(e) => end(e)}
-          onPointerCancel={(e) => end(e, true)}
-          style={{
-            transform: `translate(${offset.x}px, ${offset.y}px) rotate(${offset.x / 20}deg)`,
-          }}
-          className="flex h-[calc(100dvh-216px)] max-h-[650px] min-h-[410px] cursor-grab touch-none flex-col overflow-hidden rounded-[14px] border border-[#e5e7ef] bg-white shadow-[0_7px_26px_#26314212] transition-transform motion-reduce:transition-none sm:h-[calc(100dvh-238px)] sm:min-h-[490px] sm:rounded-[18px]"
-          onClick={() => {
-            if (!suppress.current)
-              window.open(story.url, "_blank", "noopener,noreferrer");
-          }}
-        >
-          <div className="bg-linear-to-r from-[#fff1f5] to-[#f0edff] px-6 py-5 text-xl font-extrabold tracking-widest text-[#b53a67] sm:px-7 sm:py-[26px]">
-            {story.sourceTitle}
-          </div>
-          <div className="flex min-h-0 flex-1 flex-col p-6 sm:p-7">
-            <span className="text-xs font-bold tracking-wider text-[#778091]">
-              {story.sourceTitle}
-            </span>
-            <h1 className="my-4 text-[27px] leading-tight font-bold tracking-tight wrap-break-word sm:text-[29px]">
-              {story.title}
-            </h1>
-            <p
-              data-no-drag
-              onClick={(e) => e.stopPropagation()}
-              className="min-h-0 touch-pan-y overflow-auto text-sm leading-7 text-[#667184] sm:text-[15px]"
-            >
-              {story.description}
-            </p>
-            <div className="mt-auto flex flex-col gap-1.5 pt-4 text-[11px] text-[#969eaa]">
-              <time>
-                {story.publishedAt
-                  ? new Date(story.publishedAt).toLocaleDateString("ko-KR")
-                  : "날짜 정보 없음"}
-              </time>
-              <a
-                data-no-drag
-                href={story.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="text-[13px] font-semibold text-[#f04f77]"
-              >
-                원문 보기 ↗
-              </a>
+        <>
+          {offset.x < -24 && (
+            <div className="story-swipe-hint is-skip" aria-hidden="true">
+              <img
+                src="/figma/discard-panel.svg"
+                alt=""
+                width="36"
+                height="36"
+              />
+              <span>안 읽기</span>
             </div>
-          </div>
-        </article>
+          )}
+          {offset.x > 24 && (
+            <div className="story-swipe-hint is-save" aria-hidden="true">
+              <img src="/figma/save-panel.svg" alt="" width="36" height="36" />
+              <span>저장</span>
+            </div>
+          )}
+          <article
+            onPointerDown={down}
+            onPointerMove={move}
+            onPointerUp={(e) => end(e)}
+            onPointerCancel={(e) => end(e, true)}
+            style={{
+              transform: `translate(${offset.x}px, ${offset.y}px) rotate(${offset.x / 20}deg)`,
+            }}
+            className="story-card"
+            onClick={() => {
+              if (!suppress.current)
+                window.open(story.url, "_blank", "noopener,noreferrer");
+            }}
+          >
+            <div className="story-card-content">
+              <h1 data-no-drag tabIndex={0} className="story-title">
+                {story.title}
+              </h1>
+              <p
+                data-no-drag
+                tabIndex={0}
+                onClick={(e) => e.stopPropagation()}
+                className="story-description"
+              >
+                {story.description}
+              </p>
+              <div className="story-meta">
+                <span className="story-source">{story.sourceTitle}</span>
+                <time>
+                  {story.publishedAt
+                    ? new Date(story.publishedAt).toLocaleDateString("ko-KR")
+                    : "날짜 정보 없음"}
+                </time>
+                <a
+                  data-no-drag
+                  href={story.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  원문 보기 ↗
+                </a>
+              </div>
+            </div>
+          </article>
+        </>
       ) : (
-        <div className="py-20 text-center text-[#768092]">
-          <h1 className="text-xl font-bold text-[#263142]">{empty}</h1>
+        <div className="story-empty">
+          {hydrated &&
+            data.sources.length > 0 &&
+            !loading &&
+            failed !== data.sources.length &&
+            Object.keys(data.stories).length > 0 && (
+              <img src="/figma/complete.svg" width="96" height="96" alt="" />
+            )}
+          <h1>{empty}</h1>
           {!data.sources.length && hydrated && (
-            <Link
-              href="/settings"
-              className="mt-4 inline-block text-[#ef4e75] underline"
-            >
+            <Link href="/settings" className="mt-4 inline-block underline">
               구독 설정으로 이동
             </Link>
           )}
         </div>
       )}
-      <div
-        aria-label="카드 선택"
-        className="flex items-center justify-between gap-2 px-2.5 pt-[17px] sm:gap-3 sm:px-2 sm:pt-[22px]"
-      >
+      <div aria-label="카드 선택" className="story-actions">
         {[
           {
             label: "직전 선택 되돌리기",
-            icon: <ArrowPathIcon />,
+            icon: <img src="/figma/undo.svg" width="24" height="24" alt="" />,
             disabled: !history.length,
-            color: "text-amber-400",
+            shortLabel: "되돌리기",
             run: () => {
               undo();
               setMessage("직전 선택을 되돌렸어요.");
@@ -216,23 +226,25 @@ export function StoryCard() {
           },
           {
             label: "안 읽기",
-            icon: <XMarkIcon />,
+            icon: (
+              <img src="/figma/discard.svg" width="24" height="24" alt="" />
+            ),
             disabled: !story,
-            color: "text-rose-500",
+            shortLabel: "안읽기",
             run: () => act("skip"),
           },
           {
             label: "큐 맨 뒤로 보류",
             icon: <ArrowUpIcon />,
             disabled: !story,
-            color: "text-sky-500",
+            shortLabel: "보류",
             run: () => act("defer"),
           },
           {
             label: liked ? "관심 표시 취소" : "관심 표시",
             icon: liked ? <HeartSolid /> : <HeartIcon />,
             disabled: !story,
-            color: liked ? "bg-emerald-500 text-white" : "text-emerald-500",
+            shortLabel: "관심",
             pressed: liked,
             run: () => {
               interest();
@@ -243,9 +255,11 @@ export function StoryCard() {
           },
           {
             label: "저장하고 다음 카드",
-            icon: <BookmarkIcon />,
+            icon: (
+              <img src="/figma/bookmark.svg" width="24" height="24" alt="" />
+            ),
             disabled: !story,
-            color: "text-violet-500",
+            shortLabel: "저장",
             run: () => act("save"),
           },
         ].map((a) => (
@@ -257,24 +271,20 @@ export function StoryCard() {
             disabled={a.disabled}
             onClick={a.run}
             variant="outline"
-            className={`size-12 min-w-0 shrink-0 rounded-full p-2 shadow-sm sm:size-[58px] sm:p-3 [&_svg]:size-6 ${a.color}`}
+            className="story-action-button"
           >
             {a.icon}
+            <span>{a.shortLabel}</span>
           </Button>
         ))}
       </div>
-      <p
-        role="status"
-        className="mt-3 min-h-8 text-center text-xs text-[#7e8796]"
-      >
+      <p role="status" className="story-message">
         {message || (loading ? "새 소식을 확인하고 있어요." : "")}
         <span className="sr-only"> 선택 {announcement}</span>
       </p>
-      <div className="text-center text-xs text-[#7e8796]">
+      <div className="story-feed-status">
         {failed > 0 && (
-          <Link className="text-rose-600 underline" href="/settings">
-            출처 {failed}개를 불러오지 못했어요
-          </Link>
+          <Link href="/settings">출처 {failed}개를 불러오지 못했어요</Link>
         )}{" "}
         {data.sources.length > 0 && (
           <button
@@ -284,7 +294,8 @@ export function StoryCard() {
               setMessage("새 소식을 확인하고 있어요.");
             }}
           >
-            전체 새로고침
+            <img src="/figma/refresh.svg" width="16" height="16" alt="" /> 전체
+            새로고침
           </button>
         )}
       </div>

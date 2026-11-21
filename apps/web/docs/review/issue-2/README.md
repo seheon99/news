@@ -1,12 +1,16 @@
 # Issue 2 reader visual review
 
-See the [UI design audit](ui-design-audit.md) for the complete visible UI Tips inventory, findings, and remaining work.
+See the [historical UI design audit](ui-design-audit.md) for the visible UI Tips inventory assessed before the Figma refresh.
 
-The screenshots below document the current reader UI and a separate visual refresh proposal. Images prefixed `implemented-` come from the running application on this branch. Images prefixed `design-a-` come from the standalone Blue v4 proposal at `.superpowers/brainstorm/114014-1795240300/content/reader-blue-redesign-v4.html`; they are design references, not shipped UI.
+Images prefixed `implemented-` show the running application after the [Figma refresh](https://www.figma.com/design/OoCUpQ24pBnkjYjsEm3vnD/news?node-id=5-2). The cream canvas, serif article text, rounded cards, and bottom tabs follow the supplied design. Existing five actions, saved list, and RSS behavior remain unchanged; unsupported library filters and newsletter inbox controls are omitted. Full Noto Sans KR and Noto Serif KR variable fonts are self-hosted with OFL licenses (9.3 MiB combined).
+
+Images prefixed `design-a-` retain the earlier standalone Blue v4 proposal for historical comparison. That proposal was superseded by the supplied Figma design.
 
 The live app screenshots use synthetic Korean stories stored in the browser's `moa-reader-v1` state. Requests to `/api/feed` were intercepted locally and returned a controlled sample error for the failure view. No Gmail account, personal feed, or real subscription was used. The prototype's settings failure and saved states are its own interactive sample data.
 
-Viewports: desktop 1440×1000; mobile 390×844. Screenshots were captured with Chromium at device scale factor 1. They show the initial reader, saved content, and settings states without scrolling.
+Viewports: desktop 1440×1000; reader mobile 390×844; empty settings mobile 420×912. Screenshots were captured with Chromium at device scale factor 1. They show the initial reader, saved content, and settings states without scrolling.
+
+Regression checks also cover long content at 320×740. During a held 120px right drag at 390px, document width remains 390px; removing the clipping class in the browser reproduces 519px document width. Source-region left/right/up drags skip/save/defer at mobile and desktop widths. Emulated touch scrolling moves both title and description independently. Focused text arrow keys leave the queue unchanged; body-level ArrowUp and ArrowRight still defer and save. Physical devices were not tested.
 
 ## Current application
 
@@ -17,6 +21,8 @@ Viewports: desktop 1440×1000; mobile 390×844. Screenshots were captured with C
 - [Empty settings · mobile](screenshots/implemented-settings-empty-mobile.png)
 
 ## Blue v4 design proposal
+
+Historical reference, superseded by Figma.
 
 - [Reader · desktop](screenshots/design-a-reader-desktop.png)
 - [Reader · mobile](screenshots/design-a-reader-mobile.png)

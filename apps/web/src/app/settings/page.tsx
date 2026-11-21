@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable tailwindcss/no-custom-classname */
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,76 +52,81 @@ export default function Settings() {
     }
   }
   return (
-    <section className="py-4">
-      <p className="text-xs tracking-widest text-[#f04f77]">구독 관리</p>
-      <h1 className="mt-1 text-2xl font-bold">구독 설정</h1>
-      <p className="mt-1 text-[#8b94a2]">새 소식을 받아볼 출처를 등록하세요.</p>
-      <form onSubmit={register}>
-        <label htmlFor="feed-url" className="mt-5 mb-2 block">
-          RSS / Atom 피드 URL
-        </label>
-        <div className="flex gap-2">
-          <Input
-            id="feed-url"
-            type="url"
-            required
-            placeholder="https://example.com/feed.xml"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-          <Button disabled={busy} type="submit">
-            구독 등록
-          </Button>
-        </div>
-        <p role="status" className="min-h-10 py-2 text-sm text-[#768092]">
-          {feedback}
+    <section className="settings-page">
+      <section className="settings-card">
+        <h2 className="settings-title">새 출처 등록</h2>
+        <p className="settings-intro">
+          새 소식을 받아볼 RSS 또는 Atom 피드를 등록하세요.
         </p>
-      </form>
-      <h2 className="text-lg font-bold">등록한 출처</h2>
-      {data.sources.length === 0 && (
-        <p className="py-5 text-sm text-[#8b94a2]">등록한 출처가 없어요.</p>
-      )}
-      {data.sources.map((source) => {
-        const status = statuses[source.url];
-        return (
-          <div key={source.url} className="border-b border-[#e1e5ed] py-4">
-            <strong>{source.title}</strong>
-            <p className="text-xs break-all text-[#8b94a2]">{source.url}</p>
-            <p
-              className={`mt-1 text-sm ${status?.error ? "text-rose-600" : "text-[#768092]"}`}
-            >
-              {status?.loading || !status
-                ? "확인 중…"
-                : status.error
-                  ? `실패: ${status.error} 기존 소식은 보관되어 있어요.`
-                  : "수집 성공"}
-            </p>
-            <p className="text-xs text-[#8b94a2]">
-              {status?.error && status.failedAt && (
-                <>
-                  마지막 실패:{" "}
-                  {new Date(status.failedAt).toLocaleString("ko-KR")} ·{" "}
-                </>
-              )}
-              마지막 성공:{" "}
-              {source.lastFetchedAt
-                ? new Date(source.lastFetchedAt).toLocaleString("ko-KR")
-                : "없음"}
-              {source.excludedCount > 0 &&
-                ` · 제외된 항목 ${source.excludedCount}개`}
-            </p>
-            <Button
-              variant="outline"
-              className="mt-2"
-              disabled={status?.loading}
-              onClick={() => void mutate(source.url)}
-            >
-              다시 시도
+        <form onSubmit={register}>
+          <label htmlFor="feed-url" className="settings-label">
+            RSS / Atom 피드 URL
+          </label>
+          <div className="settings-form-row">
+            <Input
+              id="feed-url"
+              type="url"
+              required
+              placeholder="https://example.com/feed.xml"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+            <Button disabled={busy} type="submit">
+              구독 등록
             </Button>
           </div>
-        );
-      })}
-      <p className="mt-6 text-xs text-[#8b94a2]">
+          <p role="status" className="settings-feedback">
+            {feedback}
+          </p>
+        </form>
+      </section>
+      <section className="settings-sources">
+        <h2 className="settings-title">등록한 출처</h2>
+        {data.sources.length === 0 && (
+          <p className="settings-empty">등록한 출처가 없어요.</p>
+        )}
+        {data.sources.map((source) => {
+          const status = statuses[source.url];
+          return (
+            <div key={source.url} className="source-card">
+              <strong>{source.title}</strong>
+              <p className="source-url">{source.url}</p>
+              <p
+                className={`source-status ${status?.error ? "has-error" : ""}`}
+              >
+                {status?.loading || !status
+                  ? "확인 중…"
+                  : status.error
+                    ? `실패: ${status.error} 기존 소식은 보관되어 있어요.`
+                    : "수집 성공"}
+              </p>
+              <p className="source-meta">
+                {status?.error && status.failedAt && (
+                  <>
+                    마지막 실패:{" "}
+                    {new Date(status.failedAt).toLocaleString("ko-KR")} ·{" "}
+                  </>
+                )}
+                마지막 성공:{" "}
+                {source.lastFetchedAt
+                  ? new Date(source.lastFetchedAt).toLocaleString("ko-KR")
+                  : "없음"}
+                {source.excludedCount > 0 &&
+                  ` · 제외된 항목 ${source.excludedCount}개`}
+              </p>
+              <Button
+                variant="outline"
+                className="mt-2"
+                disabled={status?.loading}
+                onClick={() => void mutate(source.url)}
+              >
+                다시 시도
+              </Button>
+            </div>
+          );
+        })}
+      </section>
+      <p className="settings-disclosure">
         구독과 선택 기록은 현재 브라우저에 보관됩니다.
       </p>
     </section>
