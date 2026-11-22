@@ -214,66 +214,68 @@ export function StoryCard() {
           )}
         </div>
       )}
-      <div aria-label="카드 선택" className="story-actions">
-        {[
-          {
-            label: "직전 선택 되돌리기",
-            icon: <ArrowUturnLeftIcon />,
-            disabled: !history.length,
-            visibleLabel: undefined,
-            run: () => {
-              undo();
-              setMessage("직전 선택을 되돌렸어요.");
+      {story && (
+        <div aria-label="카드 선택" className="story-actions">
+          {[
+            {
+              label: "직전 선택 되돌리기",
+              icon: <ArrowUturnLeftIcon />,
+              disabled: !history.length,
+              visibleLabel: undefined,
+              run: () => {
+                undo();
+                setMessage("직전 선택을 되돌렸어요.");
+              },
             },
-          },
-          {
-            label: "안 읽기",
-            icon: null,
-            disabled: !story,
-            visibleLabel: "안 읽기",
-            run: () => act("skip"),
-          },
-          {
-            label: "큐 맨 뒤로 보류",
-            icon: <ArrowUpIcon />,
-            disabled: !story,
-            visibleLabel: undefined,
-            run: () => act("defer"),
-          },
-          {
-            label: liked ? "챙기기 취소" : "챙기기",
-            icon: liked ? <ArchiveBoxSolid /> : <ArchiveBoxIcon />,
-            disabled: !story,
-            visibleLabel: "챙기기",
-            pressed: liked,
-            run: () => {
-              interest();
-              setMessage(liked ? "챙기기를 취소했어요." : "챙겼어요.");
+            {
+              label: "안 읽기",
+              icon: <TrashIcon />,
+              disabled: !story,
+              visibleLabel: "안 읽기",
+              run: () => act("skip"),
             },
-          },
-          {
-            label: "저장하고 다음 카드",
-            icon: <BookmarkIcon />,
-            disabled: !story,
-            visibleLabel: undefined,
-            run: () => act("save"),
-          },
-        ].map((a) => (
-          <Button
-            key={a.label}
-            aria-label={a.label}
-            title={a.label}
-            aria-pressed={a.pressed}
-            disabled={a.disabled}
-            onClick={a.run}
-            variant="outline"
-            className={`story-action-button ${a.visibleLabel ? "story-action-button-with-label" : ""}`}
-          >
-            {a.icon}
-            {a.visibleLabel && <span>{a.visibleLabel}</span>}
-          </Button>
-        ))}
-      </div>
+            {
+              label: "큐 맨 뒤로 보류",
+              icon: <ArrowUpIcon />,
+              disabled: !story,
+              visibleLabel: undefined,
+              run: () => act("defer"),
+            },
+            {
+              label: liked ? "챙기기 취소" : "챙기기",
+              icon: liked ? <ArchiveBoxSolid /> : <ArchiveBoxIcon />,
+              disabled: !story,
+              visibleLabel: "챙기기",
+              pressed: liked,
+              run: () => {
+                interest();
+                setMessage(liked ? "챙기기를 취소했어요." : "챙겼어요.");
+              },
+            },
+            {
+              label: "저장하고 다음 카드",
+              icon: <BookmarkIcon />,
+              disabled: !story,
+              visibleLabel: undefined,
+              run: () => act("save"),
+            },
+          ].map((a) => (
+            <Button
+              key={a.label}
+              aria-label={a.label}
+              title={a.label}
+              aria-pressed={a.pressed}
+              disabled={a.disabled}
+              onClick={a.run}
+              variant="outline"
+              className={`story-action-button ${a.visibleLabel ? "story-action-button-with-label" : ""}`}
+            >
+              {a.icon}
+              {a.visibleLabel && <span>{a.visibleLabel}</span>}
+            </Button>
+          ))}
+        </div>
+      )}
       <p role="status" className="story-message">
         {message || (loading ? "새 소식을 확인하고 있어요." : "")}
         <span className="sr-only"> 선택 {announcement}</span>
