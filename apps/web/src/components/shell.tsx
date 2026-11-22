@@ -33,7 +33,7 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="mx-auto flex h-dvh w-full max-w-105 flex-col pb-[env(safe-area-inset-bottom)]">
       <header className="flex-none px-6 pt-5 pb-2 max-[420px]:px-5 max-[420px]:pt-3">
-        <div className="mx-auto flex w-full max-w-[470px] items-center justify-between">
+        <div className="flex w-full items-center justify-between">
           <Heading className="text-[28px]/[1.45]! font-bold! tracking-[-0.04em] text-foreground!">
             {title}{" "}
             <span className="pl-1 align-[2px] text-xl font-medium text-foreground/60">
@@ -52,7 +52,7 @@ export function Shell({ children }: { children: ReactNode }) {
           )}
         </div>
       </header>
-      <main className="mx-auto flex min-h-0 w-full max-w-[518px] flex-1 flex-col overflow-y-auto px-6 pt-2 pb-4 max-[420px]:px-5 max-[420px]:pb-3">
+      <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto px-6 pt-2 pb-4 max-[420px]:px-5 max-[420px]:pb-3">
         {error && (
           <Text
             role="alert"
