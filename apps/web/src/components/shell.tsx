@@ -1,5 +1,6 @@
 "use client";
-/* eslint-disable tailwindcss/no-custom-classname, @next/next/no-img-element */
+/* eslint-disable tailwindcss/no-custom-classname */
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -37,7 +38,7 @@ export function Shell({ children }: { children: ReactNode }) {
               className="reader-settings"
               aria-label="구독 설정"
             >
-              <img src="/figma/settings.svg" alt="" width="24" height="24" />
+              <Cog6ToothIcon />
             </Link>
           )}
         </div>

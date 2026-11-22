@@ -1,8 +1,15 @@
 "use client";
-/* eslint-disable tailwindcss/no-custom-classname, @next/next/no-img-element */
+/* eslint-disable tailwindcss/no-custom-classname */
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
-import { ArchiveBoxIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
+import {
+  ArchiveBoxIcon,
+  ArrowUpIcon,
+  ArrowUturnLeftIcon,
+  BookmarkIcon,
+  CheckIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { ArchiveBoxIcon as ArchiveBoxSolid } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/button";
 import { gestureAction } from "@/lib/gesture";
@@ -137,18 +144,13 @@ export function StoryCard() {
         <>
           {offset.x < -24 && (
             <div className="story-swipe-hint is-skip" aria-hidden="true">
-              <img
-                src="/figma/discard-panel.svg"
-                alt=""
-                width="36"
-                height="36"
-              />
+              <TrashIcon />
               <span>안 읽기</span>
             </div>
           )}
           {offset.x > 24 && (
             <div className="story-swipe-hint is-save" aria-hidden="true">
-              <img src="/figma/save-panel.svg" alt="" width="36" height="36" />
+              <ArchiveBoxIcon />
               <span>저장</span>
             </div>
           )}
@@ -203,9 +205,7 @@ export function StoryCard() {
             data.sources.length > 0 &&
             !loading &&
             failed !== data.sources.length &&
-            Object.keys(data.stories).length > 0 && (
-              <img src="/figma/complete.svg" width="96" height="96" alt="" />
-            )}
+            Object.keys(data.stories).length > 0 && <CheckIcon />}
           <h1>{empty}</h1>
           {!data.sources.length && hydrated && (
             <Link href="/settings" className="mt-4 inline-block underline">
@@ -218,7 +218,7 @@ export function StoryCard() {
         {[
           {
             label: "직전 선택 되돌리기",
-            icon: <img src="/figma/undo.svg" width="24" height="24" alt="" />,
+            icon: <ArrowUturnLeftIcon />,
             disabled: !history.length,
             visibleLabel: undefined,
             run: () => {
@@ -253,9 +253,7 @@ export function StoryCard() {
           },
           {
             label: "저장하고 다음 카드",
-            icon: (
-              <img src="/figma/bookmark.svg" width="24" height="24" alt="" />
-            ),
+            icon: <BookmarkIcon />,
             disabled: !story,
             visibleLabel: undefined,
             run: () => act("save"),
