@@ -5,6 +5,7 @@ import { gestureAction } from "@/lib/gesture";
 import { vibrate } from "@/lib/haptic";
 import type { Story } from "@/lib/reader";
 import { useReaderStore } from "@/stores/reader-provider";
+import { SwipeHint } from "./swipe-hint";
 
 type Gesture = NonNullable<ReturnType<typeof gestureAction>>;
 
@@ -29,13 +30,8 @@ export function SwipeCard({
   useEffect(() => {
     if (armed === "skip" || armed === "store") vibrate();
   }, [armed]);
-  function hint(action: "skip" | "store", placement: string) {
-    const active = armed === action;
-    return {
-      style: { opacity: Math.min(Math.abs(offset.x) / 80, 1) },
-      className: `pointer-events-none absolute top-0 bottom-[62px] z-20 flex w-29 flex-col gap-2 px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9 [&>svg]:transition-transform [&>svg]:duration-150 ${active ? "[&>svg]:scale-125" : ""} ${placement}`,
-    };
-  }
+  const reveal = horizontal ? Math.min(Math.abs(offset.x) / 80, 1) : 0;
+  const settling = !offset.x && !offset.y;
   function down(e: PointerEvent<HTMLElement>) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     drag.current = { x: e.clientX, y: e.clientY, moved: false, id: story.id };
@@ -67,25 +63,23 @@ export function SwipeCard({
     }
   }
   return (
-    <>
-      {horizontal && offset.x < 0 && (
-        <div
-          {...hint("skip", "-left-6 items-end rounded-l-3xl bg-skip")}
-          aria-hidden="true"
-        >
-          <TrashIcon />
-          <span>버리기</span>
-        </div>
-      )}
-      {horizontal && offset.x > 0 && (
-        <div
-          {...hint("store", "-right-6 items-start rounded-r-3xl bg-save")}
-          aria-hidden="true"
-        >
-          <ArchiveBoxIcon />
-          <span>챙기기</span>
-        </div>
-      )}
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <SwipeHint
+        icon={<TrashIcon />}
+        label="버리기"
+        className="justify-end bg-skip"
+        opacity={offset.x < 0 ? reveal : 0}
+        armed={armed === "skip"}
+        settling={settling}
+      />
+      <SwipeHint
+        icon={<ArchiveBoxIcon />}
+        label="챙기기"
+        className="justify-start bg-save"
+        opacity={offset.x > 0 ? reveal : 0}
+        armed={armed === "store"}
+        settling={settling}
+      />
       <article
         onPointerDown={down}
         onPointerMove={move}
@@ -134,6 +128,6 @@ export function SwipeCard({
           </div>
         </div>
       </article>
-    </>
+    </div>
   );
 }
