@@ -2,6 +2,7 @@
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
+import { libraryGroups } from "@/lib/reader";
 import { useReaderStore } from "@/stores/reader-provider";
 import { Button } from "@/components/catalyst/button";
 import { Heading } from "@/components/catalyst/heading";
@@ -21,7 +22,10 @@ export function Shell({ children }: { children: ReactNode }) {
   const error = useReaderStore((s) => s.storageError);
   const [title, count] =
     path === "/library"
-      ? ["보관함", Object.keys(data.saved).length]
+      ? (() => {
+          const { bookmarked, stored } = libraryGroups(data);
+          return ["보관함", bookmarked.length + stored.length];
+        })()
       : path === "/subscriptions"
         ? ["구독", data.sources.length]
         : ["받은 항목", data.queue.length];

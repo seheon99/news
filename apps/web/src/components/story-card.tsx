@@ -14,23 +14,21 @@ import {
   CheckIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { ArchiveBoxIcon as ArchiveBoxSolid } from "@heroicons/react/24/solid";
 import { Button } from "@/components/catalyst/button";
 import { Heading } from "@/components/catalyst/heading";
 import { Text, TextLink } from "@/components/catalyst/text";
 import { gestureAction } from "@/lib/gesture";
-import { releaseHaptic, vibrate } from "@/lib/haptic";
+import type { Choice } from "@/lib/reader";
+import { vibrate } from "@/lib/haptic";
 import { useReaderStore } from "@/stores/reader-provider";
 import { useFeedStatus } from "@/hooks/feed-sync";
 
-type Action = "skip" | "save" | "defer" | "collect";
 export function StoryCard() {
   const data = useReaderStore((s) => s.data);
   const hydrated = useReaderStore((s) => s.hydrated);
   const choose = useReaderStore((s) => s.choose);
   const isCurrent = useReaderStore((s) => s.isCurrent);
   const undo = useReaderStore((s) => s.undo);
-  const interest = useReaderStore((s) => s.interest);
   const history = useReaderStore((s) => s.history);
   const canUndo = history.length > 0;
   const statuses = useFeedStatus();
@@ -45,7 +43,6 @@ export function StoryCard() {
   } | null>(null);
   const suppress = useRef(false);
   const story = data.stories[data.queue[0]];
-  const liked = !!story && Object.hasOwn(data.interests, story.id);
   const loading = data.sources.some(
     (s) => !statuses[s.url] || statuses[s.url].loading,
   );
@@ -54,9 +51,9 @@ export function StoryCard() {
   const armed = gestureAction(offset.x, offset.y);
   const horizontal = Math.abs(offset.x) > Math.abs(offset.y);
   useEffect(() => {
-    if (armed === "skip" || armed === "collect") vibrate();
+    if (armed === "skip" || armed === "store") vibrate();
   }, [armed]);
-  function hint(action: "skip" | "collect", placement: string) {
+  function hint(action: "skip" | "store", placement: string) {
     const active = armed === action;
     return {
       // Fades in with the drag and reaches full colour exactly where releasing triggers the action.
@@ -64,28 +61,29 @@ export function StoryCard() {
       className: `pointer-events-none absolute top-0 bottom-[62px] z-20 flex w-29 flex-col gap-2 px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9 [&>svg]:transition-transform [&>svg]:duration-150 ${active ? "[&>svg]:scale-125" : ""} ${placement}`,
     };
   }
-  function announce(action: Action, title: string) {
+  function announce(action: Choice, title: string) {
     setAnnouncement((id) => id + 1);
     setMessage(
       `${
         {
-          skip: "안 읽기로 선택했어요.",
-          save: "저장했어요.",
+          skip: "안 읽기로 넘겼어요.",
+          store: "챙겼어요.",
+          save: "북마크했어요.",
           defer: "맨 뒤로 보류했어요.",
-          collect: "챙기고 넘겼어요.",
         }[action]
       } ${title}`,
     );
   }
-  function act(action: Action, expectedId?: string) {
-    if (action === "collect") {
-      // 챙기기 + next card: mark interest (never un-mark) and move on without saving.
-      if (expectedId && !isCurrent(expectedId)) return;
-      if (!liked) interest();
-      if (!choose("skip", expectedId)) return;
-    } else if (!choose(action, expectedId)) return;
+  function act(action: Choice, expectedId?: string) {
+    if (!choose(action, expectedId)) return;
     announce(action, data.stories[expectedId ?? data.queue[0]]?.title ?? "");
   }
+  function undoLast() {
+    undo();
+    setMessage("직전 선택을 되돌렸어요.");
+  }
+  const actionButton =
+    "min-h-12 w-full min-w-11 items-center! gap-0.5! rounded-2xl! border-line! bg-card p-[3px]! text-secondary! [--btn-icon:currentColor]!";
   // Effect event: always sees the latest story/undo state without re-subscribing.
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (
@@ -101,15 +99,14 @@ export function StoryCard() {
     )
       return;
     const action = (
-      { ArrowLeft: "skip", ArrowRight: "collect", ArrowUp: "defer" } as const
+      { ArrowLeft: "skip", ArrowRight: "store", ArrowUp: "defer" } as const
     )[e.key as "ArrowLeft"];
     if (action && story) {
       e.preventDefault();
       act(action);
     } else if ((e.ctrlKey || e.metaKey) && e.key === "z" && canUndo) {
       e.preventDefault();
-      undo();
-      setMessage("직전 선택을 되돌렸어요.");
+      undoLast();
     }
   });
   useEffect(() => {
@@ -144,10 +141,7 @@ export function StoryCard() {
     }
     if (!cancel) {
       const action = gestureAction(e.clientX - start.x, e.clientY - start.y);
-      if (action) {
-        releaseHaptic();
-        act(action, start.id);
-      }
+      if (action) act(action, start.id);
     }
   }
   const empty = !hydrated
@@ -176,7 +170,7 @@ export function StoryCard() {
           )}
           {horizontal && offset.x > 0 && (
             <div
-              {...hint("collect", "-right-6 items-start rounded-r-3xl bg-save")}
+              {...hint("store", "-right-6 items-start rounded-r-3xl bg-save")}
               aria-hidden="true"
             >
               <ArchiveBoxIcon />
@@ -253,52 +247,40 @@ export function StoryCard() {
           )}
         </div>
       )}
-      {story && (
+      {story ? (
         <div
           aria-label="카드 선택"
           className="grid grid-cols-[44px_minmax(0,1fr)_44px_minmax(0,1fr)_44px] gap-[5px] pt-3.5"
         >
+          {/* Left to right in rising priority: dropped < stored < bookmarked. */}
           {[
             {
               label: "직전 선택 되돌리기",
               icon: <ArrowUturnLeftIcon />,
-              disabled: !history.length,
-              visibleLabel: undefined,
-              run: () => {
-                undo();
-                setMessage("직전 선택을 되돌렸어요.");
-              },
+              disabled: !canUndo,
+              run: undoLast,
             },
             {
               label: "안 읽기",
               icon: <TrashIcon />,
-              disabled: !story,
               visibleLabel: "안 읽기",
               run: () => act("skip"),
             },
             {
               label: "큐 맨 뒤로 보류",
               icon: <ArrowUpIcon />,
-              disabled: !story,
-              visibleLabel: undefined,
               run: () => act("defer"),
             },
             {
-              label: liked ? "챙기기 취소" : "챙기기",
-              icon: liked ? <ArchiveBoxSolid /> : <ArchiveBoxIcon />,
-              disabled: !story,
+              label: "챙기기",
+              icon: <ArchiveBoxIcon />,
               visibleLabel: "챙기기",
-              pressed: liked,
-              run: () => {
-                interest();
-                setMessage(liked ? "챙기기를 취소했어요." : "챙겼어요.");
-              },
+              run: () => act("store"),
             },
             {
-              label: "저장하고 다음 카드",
+              label: "북마크",
               icon: <BookmarkIcon />,
-              disabled: !story,
-              visibleLabel: undefined,
+              primary: true,
               run: () => act("save"),
             },
           ].map((a) => (
@@ -306,11 +288,10 @@ export function StoryCard() {
               key={a.label}
               aria-label={a.label}
               title={a.label}
-              aria-pressed={a.pressed}
               disabled={a.disabled}
               onClick={a.run}
               outline
-              className={`min-h-12 w-full min-w-11 items-center! gap-0.5! rounded-2xl! border-line! bg-card p-[3px]! text-secondary! [--btn-icon:currentColor]! aria-pressed:bg-secondary! aria-pressed:text-white! ${a.visibleLabel ? "gap-1.5! *:data-[slot=icon]:size-5!" : "*:data-[slot=icon]:size-6!"}`}
+              className={`${actionButton} ${a.visibleLabel ? "gap-1.5! *:data-[slot=icon]:size-5!" : "*:data-[slot=icon]:size-6!"} ${a.primary ? "border-secondary! bg-secondary! text-white!" : ""}`}
             >
               {a.icon}
               {a.visibleLabel && (
@@ -321,6 +302,20 @@ export function StoryCard() {
             </Button>
           ))}
         </div>
+      ) : (
+        canUndo && (
+          // After the last card only undo makes sense.
+          <div className="flex justify-center pt-3.5">
+            <Button
+              outline
+              onClick={undoLast}
+              className={`${actionButton} w-auto! gap-1.5! px-5! *:data-[slot=icon]:size-5!`}
+            >
+              <ArrowUturnLeftIcon />
+              <span className="text-sm font-semibold">직전 선택 되돌리기</span>
+            </Button>
+          </div>
+        )
       )}
       {/* Screen-reader-only: announces each choice without a visible status line. */}
       <p role="status" className="sr-only">

@@ -44,11 +44,11 @@ test("reload restores every selection and source record, but starts with no undo
   store.getState().choose("save");
   store.getState().choose("skip");
   store.getState().choose("defer");
-  store.getState().interest();
+  store.getState().choose("store");
   const beforeReload = store.getState().data;
-  assert.deepEqual(beforeReload.queue, ["four", "three"]);
+  assert.deepEqual(beforeReload.queue, ["three"]);
   assert.deepEqual(Object.keys(beforeReload.saved), ["one"]);
-  assert.deepEqual(beforeReload.skipped, ["two"]);
+  assert.deepEqual(beforeReload.skipped, ["two", "four"]);
   assert.deepEqual(Object.keys(beforeReload.interests), ["four"]);
   assert.deepEqual(beforeReload.sources, [source]);
   assert.deepEqual(isolated.getState().data.queue, []);
@@ -76,17 +76,17 @@ test("corrupt storage is preserved and write failures are visible", () => {
   assert.ok(failing.getState().storageError);
 });
 
-test("undo preserves interest and late feeds never revive selections or orphan new stories", () => {
+test("undo fully reverses 챙기기 and late feeds never revive selections or orphan new stories", () => {
   const store = createReaderStore();
   store.getState().hydrate(storage());
   store.getState().merge(result(["one", "two"]));
-  store.getState().interest();
-  store.getState().choose("skip");
+  store.getState().choose("store");
   store.getState().merge(result(["one", "two"]));
   assert.deepEqual(store.getState().data.queue, ["two"]);
+  assert.ok(store.getState().data.interests.one);
   store.getState().undo();
   assert.deepEqual(store.getState().data.queue, ["one", "two"]);
-  assert.ok(store.getState().data.interests.one);
+  assert.deepEqual(store.getState().data.interests, {});
   store.getState().choose("defer");
   store.getState().undo();
   assert.deepEqual(store.getState().data.queue, ["one", "two"]);
@@ -111,8 +111,8 @@ test("a selection bound to the dragged story cannot affect a newly prepended sto
   assert.ok(store.getState().data.saved.three);
 });
 
-for (const action of ["save", "skip", "defer"] as const) {
-  test(`undo reverses ${action}, preserves later interest, and persists the restored state`, () => {
+for (const action of ["save", "store", "skip", "defer"] as const) {
+  test(`undo reverses ${action} and persists the restored state`, () => {
     const disk = storage();
     const store = createReaderStore();
     store.getState().hydrate(disk);
@@ -129,13 +129,14 @@ for (const action of ["save", "skip", "defer"] as const) {
     );
     assert.deepEqual(
       store.getState().data.skipped,
-      action === "skip" ? ["one"] : [],
+      action === "skip" || action === "store" ? ["one"] : [],
     );
-    store.getState().interest();
-    const interests = store.getState().data.interests;
-    assert.deepEqual(Object.keys(interests), ["two"]);
+    assert.deepEqual(
+      Object.keys(store.getState().data.interests),
+      action === "store" ? ["one"] : [],
+    );
     store.getState().undo();
-    const expected = { ...before, interests };
+    const expected = before;
     assert.deepEqual(store.getState().data, expected);
     assert.deepEqual(store.getState().history, []);
     const restored = createReaderStore();

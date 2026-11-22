@@ -41,32 +41,51 @@ export function createInitialState(): ReaderState {
   };
 }
 
+/**
+ * save = bookmarked (keep), store = stored (챙기기, read later), skip = dropped.
+ * Stored stories live in `skipped` with an `interests` mark, so the persisted format is unchanged.
+ */
+export type Choice = "skip" | "store" | "save" | "defer";
+
 export function selectStory(
   state: ReaderState,
-  action: "skip" | "save" | "defer",
+  action: Choice,
+  now = new Date().toISOString(),
 ): ReaderState {
   const [id, ...rest] = state.queue;
   if (id === undefined) return state;
   if (action === "defer") return { ...state, queue: [...rest, id] };
-  if (action === "save") {
-    return {
-      ...state,
-      queue: rest,
-      saved: { ...state.saved, [id]: new Date().toISOString() },
-    };
-  }
-  return { ...state, queue: rest, skipped: [...state.skipped, id] };
+  if (action === "save")
+    return { ...state, queue: rest, saved: { ...state.saved, [id]: now } };
+  const next = { ...state, queue: rest, skipped: [...state.skipped, id] };
+  return action === "store"
+    ? { ...next, interests: { ...state.interests, [id]: now } }
+    : next;
 }
 
-export function toggleInterest(
-  state: ReaderState,
-  id: string,
-  now: string,
-): ReaderState {
-  if (!Object.hasOwn(state.stories, id)) return state;
-  const interests = { ...state.interests, [id]: now };
-  if (Object.hasOwn(state.interests, id)) delete interests[id];
-  return { ...state, interests };
+export type LibraryEntry = { story: Story; at: string | null };
+
+/** Library groups in priority order: bookmarked > stored > dropped, newest first. */
+export function libraryGroups(state: ReaderState) {
+  const entry = (id: string, at: string | null): LibraryEntry[] =>
+    Object.hasOwn(state.stories, id) ? [{ story: state.stories[id], at }] : [];
+  const byDate = (a: LibraryEntry, b: LibraryEntry) =>
+    (b.at ?? "").localeCompare(a.at ?? "");
+  const stored = (id: string) => Object.hasOwn(state.interests, id);
+  return {
+    bookmarked: Object.entries(state.saved)
+      .flatMap(([id, at]) => entry(id, at))
+      .sort(byDate),
+    stored: state.skipped
+      .filter(stored)
+      .flatMap((id) => entry(id, state.interests[id]))
+      .sort(byDate),
+    // Dropped has no timestamp; `skipped` is in choice order, so reverse it.
+    dropped: state.skipped
+      .filter((id) => !stored(id))
+      .reverse()
+      .flatMap((id) => entry(id, null)),
+  };
 }
 
 // ponytail: only the newest MAX_ARCHIVED_STORIES skipped stories without an interest mark are kept; an older one can reappear if a feed still lists it. Raise the cap or add an age limit if that happens.

@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   createInitialState,
+  libraryGroups,
   MAX_ARCHIVED_STORIES,
   mergeFeed,
   parseStoredState,
   selectStory,
   serializeState,
-  toggleInterest,
   validateReaderState,
   type ReaderState,
   type Source,
@@ -94,24 +94,39 @@ test("skipping records the current story without changing saved stories", () => 
 
 test("selection on an empty queue leaves state unchanged", () => {
   const before = createInitialState();
-  for (const action of ["skip", "save", "defer"] as const) {
+  for (const action of ["skip", "store", "save", "defer"] as const) {
     assert.deepEqual(selectStory(before, action), before);
   }
 });
 
-test("heart toggles independently of queue, saved, and skipped state", () => {
-  const before = { ...state(), saved: { c: time }, queue: ["a", "b"] };
-  const after = toggleInterest(before, "a", time);
+test("store (챙기기) moves the story out of the queue and marks it for later", () => {
+  const before = state();
+  const after = selectStory(before, "store", time);
+  assert.deepEqual(after.queue, ["b", "c"]);
+  assert.deepEqual(after.skipped, ["a"]);
   assert.deepEqual(after.interests, { a: time });
-  assert.deepEqual(after.queue, ["a", "b"]);
-  assert.deepEqual(after.saved, { c: time });
-  assert.deepEqual(after.skipped, []);
+  assert.deepEqual(after.saved, {});
   assert.deepEqual(before.interests, {});
-  assert.deepEqual(toggleInterest(after, "a", time).interests, {});
+  assert.ok(validateReaderState(after));
 });
 
-test("heart ignores IDs without a known story", () => {
-  assert.deepEqual(toggleInterest(state(), "unknown", time), state());
+test("library groups bookmarked > stored > dropped, each newest first", () => {
+  const later = "2026-11-22T00:00:00.000Z";
+  let s: ReaderState = {
+    ...state(),
+    stories: { ...state().stories, d: story("d") },
+  };
+  s = { ...s, queue: ["a", "b", "c", "d"] };
+  s = selectStory(s, "skip"); // a dropped
+  s = selectStory(s, "store", time); // b stored
+  s = selectStory(s, "save", time); // c bookmarked
+  s = selectStory(s, "store", later); // d stored later
+  const groups = libraryGroups(s);
+  const ids = (list: { story: Story }[]) => list.map((e) => e.story.id);
+  assert.deepEqual(Object.keys(groups), ["bookmarked", "stored", "dropped"]);
+  assert.deepEqual(ids(groups.bookmarked), ["c"]);
+  assert.deepEqual(ids(groups.stored), ["d", "b"]);
+  assert.deepEqual(ids(groups.dropped), ["a"]);
 });
 
 test("new stories prepend in descending publication order and missing dates sort last", () => {
@@ -188,8 +203,8 @@ test("merging a new subscription retains existing source results", () => {
   assert.deepEqual(after.queue, ["d", "a", "b", "c"]);
 });
 
-test("storage round-trips queue order, independent interest, and source fetch metadata", () => {
-  const before = toggleInterest(selectStory(state(), "defer"), "b", time);
+test("storage round-trips queue order, stored marks, and source fetch metadata", () => {
+  const before = selectStory(selectStory(state(), "defer"), "store", time);
   assert.deepEqual(parseStoredState(serializeState(before)), before);
   assert.ok(validateReaderState(before));
 });
@@ -250,13 +265,16 @@ test("feed IDs matching object prototype properties keep their own story and int
     source,
     stories: [story("__proto__"), story("constructor")],
   });
-  const after = toggleInterest(before, "__proto__", time);
-  assert.deepEqual(after.queue, ["__proto__", "constructor"]);
+  const after = selectStory(before, "store", time);
+  assert.deepEqual(after.queue, ["constructor"]);
   assert.equal(Object.hasOwn(after.stories, "__proto__"), true);
   assert.equal(Object.hasOwn(after.interests, "__proto__"), true);
   assert.equal(after.interests.__proto__, time);
   assert.deepEqual(parseStoredState(serializeState(after)), after);
-  assert.deepEqual(toggleInterest(after, "__proto__", time).interests, {});
+  assert.deepEqual(
+    libraryGroups(after).stored.map((e) => e.story.id),
+    ["__proto__"],
+  );
 });
 
 test("merge prunes the oldest unmarked skipped stories and keeps saved and interested ones", () => {

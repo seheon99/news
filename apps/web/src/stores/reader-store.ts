@@ -5,7 +5,7 @@ import {
   parseStoredState,
   selectStory,
   serializeState,
-  toggleInterest,
+  type Choice,
   type FeedResult,
   type ReaderState,
 } from "../lib/reader.ts";
@@ -14,7 +14,7 @@ export const STORAGE_KEY = "joobjoob-reader-v1";
 // ponytail: read-only fallback so pre-rename browsers keep their library; drop once nobody has it.
 export const LEGACY_STORAGE_KEYS = ["seug-reader-v1", "moa-reader-v1"];
 type StorageAccess = Pick<Storage, "getItem" | "setItem">;
-type Snapshot = Pick<ReaderState, "queue" | "saved" | "skipped">;
+type Snapshot = Pick<ReaderState, "queue" | "saved" | "skipped" | "interests">;
 type ReaderStore = {
   data: ReaderState;
   hydrated: boolean;
@@ -22,10 +22,9 @@ type ReaderStore = {
   history: Snapshot[];
   hydrate: (storage: StorageAccess) => void;
   merge: (result: FeedResult) => void;
-  choose: (action: "skip" | "save" | "defer", expectedId?: string) => boolean;
+  choose: (action: Choice, expectedId?: string) => boolean;
   isCurrent: (id: string) => boolean;
   undo: () => void;
-  interest: () => void;
 };
 
 export function createReaderStore() {
@@ -92,6 +91,7 @@ export function createReaderStore() {
           queue: data.queue,
           saved: data.saved,
           skipped: data.skipped,
+          interests: data.interests,
         };
         update(selectStory(data, action), [...history, snapshot]);
         return true;
@@ -100,11 +100,6 @@ export function createReaderStore() {
         const { data, history } = get();
         const snapshot = history.at(-1);
         if (snapshot) update({ ...data, ...snapshot }, history.slice(0, -1));
-      },
-      interest: () => {
-        const { data } = get();
-        const id = data.queue[0];
-        if (id) update(toggleInterest(data, id, new Date().toISOString()));
       },
     };
   });
