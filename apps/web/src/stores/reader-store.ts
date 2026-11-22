@@ -14,8 +14,10 @@ export const STORAGE_KEY = "joobjoob-reader-v1";
 export const LEGACY_STORAGE_KEYS = ["seug-reader-v1", "moa-reader-v1"];
 type StorageAccess = Pick<Storage, "getItem" | "setItem">;
 type Snapshot = Pick<ReaderState, "queue" | "saved" | "skipped" | "interests">;
+export type FeedStatus = { loading: boolean; error?: string };
 type ReaderStore = {
   data: ReaderState;
+  statuses: Record<string, FeedStatus>;
   hydrated: boolean;
   storageError: string | null;
   history: Snapshot[];
@@ -24,6 +26,7 @@ type ReaderStore = {
   choose: (action: Choice, expectedId?: string) => boolean;
   isCurrent: (id: string) => boolean;
   undo: () => void;
+  setStatus: (url: string, status: FeedStatus) => void;
 };
 
 export function createReaderStore() {
@@ -44,6 +47,7 @@ export function createReaderStore() {
     }
     return {
       data: createInitialState(),
+      statuses: {},
       hydrated: false,
       storageError: null,
       history: [],
@@ -99,6 +103,8 @@ export function createReaderStore() {
         const snapshot = history.at(-1);
         if (snapshot) update({ ...data, ...snapshot }, history.slice(0, -1));
       },
+      setStatus: (url, status) =>
+        set(({ statuses }) => ({ statuses: { ...statuses, [url]: status } })),
     };
   });
 }

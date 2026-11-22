@@ -4,31 +4,31 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Heading } from "@/components/catalyst/heading";
 import { Text, TextLink } from "@/components/catalyst/text";
-import { useFeedStatus } from "@/hooks/feed-sync";
 import type { Choice } from "@/lib/reader";
 import { useReaderStore } from "@/stores/reader-provider";
 import { StoryActions } from "./story-actions";
 import { SwipeCard } from "./swipe-card";
 
 export function StoryCard() {
-  const { data, hydrated, choose, undo, history } = useReaderStore(
-    useShallow((s) => ({
-      data: s.data,
-      hydrated: s.hydrated,
-      choose: s.choose,
-      undo: s.undo,
-      history: s.history,
-    })),
-  );
+  const { data, hydrated, choose, undo, history, loading, failed } =
+    useReaderStore(
+      useShallow((s) => ({
+        data: s.data,
+        hydrated: s.hydrated,
+        choose: s.choose,
+        undo: s.undo,
+        history: s.history,
+        loading: s.data.sources.some(
+          (source) => s.statuses[source.url]?.loading ?? true,
+        ),
+        failed: s.data.sources.filter((source) => s.statuses[source.url]?.error)
+          .length,
+      })),
+    );
   const canUndo = history.length > 0;
-  const statuses = useFeedStatus();
   const [message, setMessage] = useState("");
   const [announcement, setAnnouncement] = useState(0);
   const story = data.stories[data.queue[0]];
-  const loading = data.sources.some(
-    (s) => !statuses[s.url] || statuses[s.url].loading,
-  );
-  const failed = data.sources.filter((s) => statuses[s.url]?.error).length;
   function announce(action: Choice, title: string) {
     setAnnouncement((id) => id + 1);
     setMessage(

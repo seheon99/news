@@ -6,14 +6,14 @@ import { Field, Label } from "@/components/catalyst/fieldset";
 import { Subheading } from "@/components/catalyst/heading";
 import { Input } from "@/components/catalyst/input";
 import { Text } from "@/components/catalyst/text";
-import { fetchFeed, useFeedMutate, useFeedStatus } from "@/hooks/feed-sync";
+import { fetchFeed, useFeedMutate } from "@/hooks/feed-sync";
 import { normalizeFeedUrl } from "@/lib/feed-url";
 import { useReaderStore } from "@/stores/reader-provider";
 
 export default function Subscriptions() {
   const data = useReaderStore((s) => s.data);
   const merge = useReaderStore((s) => s.merge);
-  const statuses = useFeedStatus();
+  const statuses = useReaderStore((s) => s.statuses);
   const mutate = useFeedMutate();
   const [url, setUrl] = useState("");
   const [feedback, setFeedback] = useState("");

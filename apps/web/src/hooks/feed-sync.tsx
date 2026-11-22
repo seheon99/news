@@ -1,12 +1,5 @@
 "use client";
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { type ReactNode, useEffect } from "react";
 import useSWR, { SWRConfig, useSWRConfig } from "swr";
 import {
   createInitialState,
@@ -63,23 +56,6 @@ export async function fetchFeed(url: string): Promise<FeedResult> {
     else active--;
   }
 }
-type Status = {
-  loading: boolean;
-  error?: string;
-};
-type FeedContextValue = {
-  statuses: Record<string, Status>;
-  setStatus: (url: string, status: Status) => void;
-};
-const FeedContext = createContext<FeedContextValue | null>(null);
-function useFeedContext() {
-  const value = useContext(FeedContext);
-  if (!value) throw Error("FeedSync missing");
-  return value;
-}
-export function useFeedStatus() {
-  return useFeedContext().statuses;
-}
 export function useFeed(sourceUrl: string) {
   const hydrated = useReaderStore((s) => s.hydrated);
   const merge = useReaderStore((s) => s.merge);
@@ -95,7 +71,7 @@ export function useFeed(sourceUrl: string) {
 }
 function SourceSync({ url }: { url: string }) {
   const feed = useFeed(url);
-  const { setStatus } = useFeedContext();
+  const setStatus = useReaderStore((s) => s.setStatus);
   useEffect(() => {
     setStatus(url, {
       loading: feed.isValidating,
@@ -104,21 +80,15 @@ function SourceSync({ url }: { url: string }) {
   }, [url, feed.isValidating, feed.error, setStatus]);
   return null;
 }
-function SyncChildren({ children }: { children: ReactNode }) {
+function SyncChildren({ children }: { children?: ReactNode }) {
   const sources = useReaderStore((s) => s.data.sources);
-  const [statuses, setStatuses] = useState<Record<string, Status>>({});
-  const setStatus = useCallback(
-    (url: string, status: Status) =>
-      setStatuses((old) => ({ ...old, [url]: { ...old[url], ...status } })),
-    [],
-  );
   return (
-    <FeedContext.Provider value={{ statuses, setStatus }}>
+    <>
       {sources.map((s) => (
         <SourceSync key={s.url} url={s.url} />
       ))}
       {children}
-    </FeedContext.Provider>
+    </>
   );
 }
 export function FeedSync({ children }: { children?: ReactNode }) {
