@@ -1,11 +1,13 @@
 "use client";
 import { ArchiveBoxIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
-import { gestureAction } from "@/lib/gesture";
+import { gestureAction, SWIPE_TRIGGER } from "@/lib/gesture";
 import { vibrate } from "@/lib/haptic";
 import type { Story } from "@/lib/reader";
 import { useReaderStore } from "@/stores/reader-provider";
 import { SwipeHint } from "./swipe-hint";
+
+const DRAG_START = 10;
 
 type Gesture = NonNullable<ReturnType<typeof gestureAction>>;
 
@@ -30,7 +32,9 @@ export function SwipeCard({
   useEffect(() => {
     if (armed === "skip" || armed === "store") vibrate();
   }, [armed]);
-  const reveal = horizontal ? Math.min(Math.abs(offset.x) / 80, 1) : 0;
+  const reveal = horizontal
+    ? Math.min(Math.abs(offset.x) / SWIPE_TRIGGER, 1)
+    : 0;
   const settling = !offset.x && !offset.y;
   function down(e: PointerEvent<HTMLElement>) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -41,7 +45,7 @@ export function SwipeCard({
     if (!drag.current) return;
     const x = e.clientX - drag.current.x,
       y = e.clientY - drag.current.y;
-    if (Math.hypot(x, y) > 10) {
+    if (Math.hypot(x, y) > DRAG_START) {
       drag.current.moved = true;
       setOffset({ x, y });
     }
