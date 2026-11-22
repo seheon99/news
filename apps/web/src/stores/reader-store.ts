@@ -3,7 +3,6 @@ import { createInitialState } from "@/lib/reader/state/create-initial-state";
 import { mergeFeed } from "@/lib/reader/state/merge-feed";
 import { selectStory } from "@/lib/reader/state/select-story";
 import { parseStoredState } from "@/lib/reader/storage/parse-stored-state";
-import { serializeState } from "@/lib/reader/storage/serialize-state";
 import type { Choice, FeedResult, ReaderState } from "@/lib/reader/types";
 
 export const STORAGE_KEY = "joobjoob-reader-v1";
@@ -33,7 +32,7 @@ export function createReaderStore() {
       set({ data, history });
       if (!storage || blocked) return;
       try {
-        storage.setItem(STORAGE_KEY, serializeState(data));
+        storage.setItem(STORAGE_KEY, JSON.stringify(data));
       } catch {
         set({
           storageError:

@@ -5,7 +5,6 @@ import { libraryGroups } from "./state/library-groups";
 import { MAX_ARCHIVED_STORIES, mergeFeed } from "./state/merge-feed";
 import { selectStory } from "./state/select-story";
 import { parseStoredState } from "./storage/parse-stored-state";
-import { serializeState } from "./storage/serialize-state";
 import { validateReaderState } from "./storage/validate-reader-state";
 import type { ReaderState, Source, Story } from "./types";
 
@@ -200,7 +199,7 @@ test("merging a new subscription retains existing source results", () => {
 
 test("storage round-trips queue order, stored marks, and source fetch metadata", () => {
   const before = selectStory(selectStory(state(), "defer"), "store", time);
-  assert.deepEqual(parseStoredState(serializeState(before)), before);
+  assert.deepEqual(parseStoredState(JSON.stringify(before)), before);
   assert.ok(validateReaderState(before));
 });
 
@@ -268,7 +267,7 @@ test("feed IDs matching object prototype properties keep their own story and int
     Object.getOwnPropertyDescriptor(after.interests, "__proto__")?.value,
     time,
   );
-  assert.deepEqual(parseStoredState(serializeState(after)), after);
+  assert.deepEqual(parseStoredState(JSON.stringify(after)), after);
   assert.deepEqual(
     libraryGroups(after).stored.map((e) => e.story.id),
     ["__proto__"],
