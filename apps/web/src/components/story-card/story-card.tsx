@@ -2,8 +2,8 @@
 import { useEffect, useEffectEvent, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Text, TextLink } from "@/components/catalyst/text";
-import type { Choice } from "@/lib/reader";
-import { useReaderStore } from "@/stores/reader-provider";
+import type { Choice } from "@/lib/reader/types";
+import { useReaderStore } from "@/stores/use-reader-store";
 import { EmptyState } from "./empty-state";
 import { StoryActions } from "./story-actions";
 import { SwipeCard } from "./swipe-card";

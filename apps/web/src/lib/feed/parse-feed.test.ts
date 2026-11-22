@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { parseFeed } from "./feed.ts";
+import { parseFeed } from "./parse-feed";
 
 const source = "https://example.com/feed";
 const rss = (items: string) =>

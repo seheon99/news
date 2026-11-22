@@ -4,7 +4,7 @@ import { EventEmitter } from "node:events";
 import http from "node:http";
 import { Readable } from "node:stream";
 import { afterEach, test, vi } from "vitest";
-import { downloadFeed } from "./feed-fetch.ts";
+import { downloadFeed } from "./download-feed";
 
 afterEach(() => {
   vi.useRealTimers();

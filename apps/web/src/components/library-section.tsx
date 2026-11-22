@@ -1,9 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 import { Subheading } from "@/components/catalyst/heading";
-import type { LibraryEntry } from "@/lib/reader";
-
-const date = (at: string | null) =>
-  at ? new Date(at).toLocaleDateString("ko-KR") : null;
+import { formatDate } from "@/lib/format-date";
+import type { LibraryEntry } from "@/lib/reader/types";
 
 export function LibrarySection({
   title,
@@ -58,7 +56,7 @@ export function LibrarySection({
                 {story.sourceTitle}
               </span>
               <time className="flex-none whitespace-nowrap text-muted">
-                {date(at)}
+                {formatDate(at)}
               </time>
             </div>
           </a>

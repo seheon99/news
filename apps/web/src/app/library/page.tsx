@@ -6,8 +6,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Text } from "@/components/catalyst/text";
 import { LibrarySection } from "@/components/library-section";
-import { libraryGroups } from "@/lib/reader";
-import { useReaderStore } from "@/stores/reader-provider";
+import { libraryGroups } from "@/lib/reader/library-groups";
+import { useReaderStore } from "@/stores/use-reader-store";
 
 export default function Library() {
   const data = useReaderStore((s) => s.data);

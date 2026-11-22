@@ -6,8 +6,8 @@ import { Button } from "@/components/catalyst/button";
 import { Heading } from "@/components/catalyst/heading";
 import { Link } from "@/components/catalyst/link";
 import { Text } from "@/components/catalyst/text";
-import { libraryGroups } from "@/lib/reader";
-import { useReaderStore } from "@/stores/reader-provider";
+import { libraryGroups } from "@/lib/reader/library-groups";
+import { useReaderStore } from "@/stores/use-reader-store";
 
 const tabs = [
   ["/", "피드"],

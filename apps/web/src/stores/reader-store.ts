@@ -1,14 +1,10 @@
 import { createStore } from "zustand/vanilla";
-import {
-  type Choice,
-  createInitialState,
-  type FeedResult,
-  mergeFeed,
-  parseStoredState,
-  type ReaderState,
-  selectStory,
-  serializeState,
-} from "../lib/reader.ts";
+import { createInitialState } from "@/lib/reader/create-initial-state";
+import { mergeFeed } from "@/lib/reader/merge-feed";
+import { parseStoredState } from "@/lib/reader/parse-stored-state";
+import { selectStory } from "@/lib/reader/select-story";
+import { serializeState } from "@/lib/reader/serialize-state";
+import type { Choice, FeedResult, ReaderState } from "@/lib/reader/types";
 
 export const STORAGE_KEY = "joobjoob-reader-v1";
 export const LEGACY_STORAGE_KEYS = ["seug-reader-v1", "moa-reader-v1"];

@@ -1,28 +1,10 @@
 "use client";
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { useStore } from "zustand";
-import { FeedSync } from "../components/feed-sync";
-import { parseStoredState } from "../lib/reader";
-import {
-  createReaderStore,
-  type ReaderStoreApi,
-  STORAGE_KEY,
-} from "./reader-store";
+import { type ReactNode, useEffect, useState } from "react";
+import { FeedSync } from "@/components/feed-sync";
+import { parseStoredState } from "@/lib/reader/parse-stored-state";
+import { ReaderContext } from "./reader-context";
+import { createReaderStore, STORAGE_KEY } from "./reader-store";
 
-const ReaderContext = createContext<ReaderStoreApi | null>(null);
-export function useReaderStore<T>(
-  selector: (state: ReturnType<ReaderStoreApi["getState"]>) => T,
-): T {
-  const store = useContext(ReaderContext);
-  if (!store) throw new Error("ReaderProvider is missing");
-  return useStore(store, selector);
-}
 export function ReaderProvider({ children }: { children: ReactNode }) {
   const [store] = useState(createReaderStore);
   useEffect(() => {

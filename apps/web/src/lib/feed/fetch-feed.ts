@@ -1,12 +1,7 @@
-"use client";
-import useSWR, { useSWRConfig } from "swr";
-import {
-  createInitialState,
-  type FeedResult,
-  mergeFeed,
-  validateReaderState,
-} from "../lib/reader";
-import { useReaderStore } from "../stores/reader-provider";
+import { createInitialState } from "@/lib/reader/create-initial-state";
+import { mergeFeed } from "@/lib/reader/merge-feed";
+import type { FeedResult } from "@/lib/reader/types";
+import { validateReaderState } from "@/lib/reader/validate-reader-state";
 
 let active = 0;
 const waiting: (() => void)[] = [];
@@ -54,20 +49,4 @@ export async function fetchFeed(url: string): Promise<FeedResult> {
     if (next) next();
     else active--;
   }
-}
-export function useFeed(sourceUrl: string) {
-  const hydrated = useReaderStore((s) => s.hydrated);
-  const merge = useReaderStore((s) => s.merge);
-  const feed = useSWR(hydrated ? sourceUrl : null, fetchFeed, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    revalidateIfStale: false,
-    shouldRetryOnError: false,
-    refreshInterval: 0,
-    onSuccess: merge,
-  });
-  return feed;
-}
-export function useFeedMutate() {
-  return useSWRConfig().mutate;
 }

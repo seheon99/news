@@ -7,7 +7,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/catalyst/button";
-import type { Choice } from "@/lib/reader";
+import type { Choice } from "@/lib/reader/types";
 
 const actionButton =
   "min-h-12 w-full min-w-11 items-center! gap-0.5! rounded-2xl! border-line! bg-card p-[3px]! text-secondary! [--btn-icon:currentColor]!";

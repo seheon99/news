@@ -3,8 +3,8 @@ import { ArchiveBoxIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { gestureAction, SWIPE_TRIGGER } from "@/lib/gesture";
 import { vibrate } from "@/lib/haptic";
-import type { Story } from "@/lib/reader";
-import { useReaderStore } from "@/stores/reader-provider";
+import type { Story } from "@/lib/reader/types";
+import { useReaderStore } from "@/stores/use-reader-store";
 import { SwipeHint } from "./swipe-hint";
 
 const DRAG_START = 10;

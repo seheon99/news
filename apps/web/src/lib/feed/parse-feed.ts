@@ -1,31 +1,8 @@
 import { createHash } from "node:crypto";
-import { Parser as HtmlParser } from "htmlparser2";
 import Parser from "rss-parser";
-import { FeedError } from "./feed-url.ts";
-import type { FeedResult, Story } from "./reader.ts";
-
-function text(value: string | undefined): string {
-  let output = "";
-  let hidden = 0;
-  const parser = new HtmlParser(
-    {
-      onopentag(name) {
-        if (name === "script" || name === "style") hidden++;
-        else if (!hidden) output += " ";
-      },
-      ontext(part) {
-        if (!hidden) output += part;
-      },
-      onclosetag(name) {
-        if (name === "script" || name === "style") hidden--;
-        else if (!hidden) output += " ";
-      },
-    },
-    { decodeEntities: true },
-  );
-  parser.end(value ?? "");
-  return output.replace(/\s+/g, " ").trim();
-}
+import type { FeedResult, Story } from "@/lib/reader/types";
+import { FeedError } from "./feed-error";
+import { htmlToText } from "./html-to-text";
 
 export async function parseFeed(
   xml: string,
@@ -35,7 +12,7 @@ export async function parseFeed(
   try {
     if (/<!\s*(?:DOCTYPE|ENTITY)\b/i.test(xml)) throw 0;
     const feed = await new Parser().parseString(xml);
-    const title = text(feed.title) || new URL(sourceUrl).hostname;
+    const title = htmlToText(feed.title) || new URL(sourceUrl).hostname;
     const stories: Story[] = [];
     const seen = new Set<string>();
     let excludedCount = 0;
@@ -65,8 +42,8 @@ export async function parseFeed(
           id,
           sourceUrl,
           sourceTitle: title,
-          title: text(item.title) || "제목 없음",
-          description: text(item.content || item.contentSnippet),
+          title: htmlToText(item.title) || "제목 없음",
+          description: htmlToText(item.content || item.contentSnippet),
           url: url.href,
           publishedAt:
             date && Number.isFinite(date.getTime()) ? date.toISOString() : null,

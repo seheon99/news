@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
-import { useFeed } from "@/hooks/feed-sync";
-import { useReaderStore } from "@/stores/reader-provider";
+import { useFeed } from "@/hooks/use-feed";
+import { useReaderStore } from "@/stores/use-reader-store";
 
 export function SourceSync({ url }: { url: string }) {
   const feed = useFeed(url);

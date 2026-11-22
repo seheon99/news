@@ -1,6 +1,7 @@
-import { parseFeed } from "@/lib/feed.ts";
-import { downloadFeed } from "@/lib/feed-fetch.ts";
-import { FeedError, normalizeFeedUrl } from "@/lib/feed-url.ts";
+import { downloadFeed } from "@/lib/feed/download-feed";
+import { FeedError } from "@/lib/feed/feed-error";
+import { normalizeFeedUrl } from "@/lib/feed/normalize-feed-url";
+import { parseFeed } from "@/lib/feed/parse-feed";
 
 export const runtime = "nodejs";
 let activeFetches = 0;

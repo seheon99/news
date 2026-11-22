@@ -1,18 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import {
-  createInitialState,
-  libraryGroups,
-  MAX_ARCHIVED_STORIES,
-  mergeFeed,
-  parseStoredState,
-  type ReaderState,
-  type Source,
-  type Story,
-  selectStory,
-  serializeState,
-  validateReaderState,
-} from "./reader.ts";
+import { createInitialState } from "./create-initial-state";
+import { libraryGroups } from "./library-groups";
+import { MAX_ARCHIVED_STORIES, mergeFeed } from "./merge-feed";
+import { parseStoredState } from "./parse-stored-state";
+import { selectStory } from "./select-story";
+import { serializeState } from "./serialize-state";
+import type { ReaderState, Source, Story } from "./types";
+import { validateReaderState } from "./validate-reader-state";
 
 const time = "2026-11-21T00:00:00.000Z";
 const source: Source = {

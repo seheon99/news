@@ -6,9 +6,10 @@ import { Field, Label } from "@/components/catalyst/fieldset";
 import { Subheading } from "@/components/catalyst/heading";
 import { Input } from "@/components/catalyst/input";
 import { Text } from "@/components/catalyst/text";
-import { fetchFeed, useFeedMutate } from "@/hooks/feed-sync";
-import { normalizeFeedUrl } from "@/lib/feed-url";
-import { useReaderStore } from "@/stores/reader-provider";
+import { useFeedMutate } from "@/hooks/use-feed-mutate";
+import { fetchFeed } from "@/lib/feed/fetch-feed";
+import { normalizeFeedUrl } from "@/lib/feed/normalize-feed-url";
+import { useReaderStore } from "@/stores/use-reader-store";
 
 export default function Subscriptions() {
   const data = useReaderStore((s) => s.data);
