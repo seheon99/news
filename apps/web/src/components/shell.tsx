@@ -1,11 +1,12 @@
 "use client";
-/* eslint-disable tailwindcss/no-custom-classname */
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useReaderStore } from "@/stores/reader-provider";
-import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/catalyst/button";
+import { Heading } from "@/components/catalyst/heading";
+import { Link } from "@/components/catalyst/link";
+import { Text } from "@/components/catalyst/text";
 
 const tabs = [
   ["/", "피드"],
@@ -26,38 +27,55 @@ export function Shell({ children }: { children: ReactNode }) {
         : ["받은 항목", data.queue.length];
 
   return (
-    <div className="reader-shell">
-      <header className="reader-header">
-        <div className="reader-header-inner">
-          <h1 className="reader-heading">
-            {title} <span>{count}</span>
-          </h1>
+    <div className="mx-auto flex min-h-dvh w-full max-w-105 flex-col pb-[env(safe-area-inset-bottom)]">
+      <header className="flex-none px-6 pt-5 pb-2 max-[420px]:px-5 max-[420px]:pt-3">
+        <div className="mx-auto flex w-full max-w-[470px] items-center justify-between">
+          <Heading className="text-[28px]/[1.45]! font-bold! tracking-[-0.04em] text-foreground!">
+            {title}{" "}
+            <span className="pl-1 align-[2px] text-xl font-medium text-foreground/60">
+              {count}
+            </span>
+          </Heading>
           {path !== "/subscriptions" && (
-            <Link
+            <Button
               href="/subscriptions"
-              className="reader-settings"
+              outline
               aria-label="구독 설정"
+              className="size-10 items-center! rounded-full! bg-white p-0! [--btn-icon:var(--color-foreground)]! *:data-[slot=icon]:size-6!"
             >
               <Cog6ToothIcon />
-            </Link>
+            </Button>
           )}
         </div>
       </header>
-      <main className="reader-main">
-        {error && <Alert className="mb-4">{error}</Alert>}
+      <main className="mx-auto w-full max-w-[518px] flex-[1_0_auto] px-6 pt-2 pb-4 max-[420px]:px-5 max-[420px]:pb-3">
+        {error && (
+          <Text
+            role="alert"
+            className="mb-4 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-danger!"
+          >
+            {error}
+          </Text>
+        )}
         {children}
       </main>
       <nav
-        className="reader-tabs"
         aria-label="주 메뉴"
-        data-active-index={activeTab >= 0 ? activeTab : undefined}
+        style={{ "--active-index": activeTab } as CSSProperties}
+        className="relative mx-auto mt-2 mb-3 flex w-[min(240px,calc(100%-40px))] flex-none gap-1 self-center rounded-full border border-black/10 bg-card p-1"
       >
+        {activeTab >= 0 && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1 left-1 h-10 w-[calc((100%-16px)/3)] translate-x-[calc(var(--active-index)*(100%+4px))] rounded-full bg-accent transition-transform duration-200 motion-reduce:transition-none"
+          />
+        )}
         {tabs.map(([href, label]) => (
           <Link
             key={href}
             href={href}
             aria-current={path === href ? "page" : undefined}
-            className={path === href ? "reader-tab is-active" : "reader-tab"}
+            className="relative z-10 flex min-h-10 min-w-0 flex-1 items-center justify-center rounded-full text-sm font-medium whitespace-nowrap text-muted aria-[current=page]:font-bold aria-[current=page]:text-foreground"
           >
             {label}
           </Link>

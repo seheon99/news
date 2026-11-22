@@ -1,8 +1,11 @@
 "use client";
-/* eslint-disable tailwindcss/no-custom-classname */
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/catalyst/avatar";
+import { Button } from "@/components/catalyst/button";
+import { Field, Label } from "@/components/catalyst/fieldset";
+import { Subheading } from "@/components/catalyst/heading";
+import { Input } from "@/components/catalyst/input";
+import { Text } from "@/components/catalyst/text";
 import { fetchFeed, useFeedMutate, useFeedStatus } from "@/hooks/feed-sync";
 import { normalizeFeedUrl } from "@/lib/feed-url";
 import { useReaderStore } from "@/stores/reader-provider";
@@ -48,37 +51,49 @@ export default function Subscriptions() {
   }
 
   return (
-    <section className="settings-page">
-      <form className="settings-feed-form" onSubmit={register}>
-        <label htmlFor="feed-url" className="settings-title">
-          RSS 피드 추가
-        </label>
-        <div className="settings-form-row">
-          <Input
-            id="feed-url"
-            type="url"
-            required
-            placeholder="RSS 또는 Atom 링크 붙여넣기"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-          <Button disabled={busy} type="submit">
-            추가
-          </Button>
-        </div>
-        <p role="status" className="settings-feedback">
+    <section className="flex flex-col gap-3">
+      <form onSubmit={register}>
+        <Field>
+          <Label className="block px-1 pt-3 text-[13px]! font-bold! text-secondary!">
+            RSS 피드 추가
+          </Label>
+          <div className="mt-2 flex gap-2">
+            <Input
+              id="feed-url"
+              type="url"
+              required
+              placeholder="RSS 또는 Atom 링크 붙여넣기"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="min-w-0 flex-1"
+            />
+            <Button
+              disabled={busy}
+              type="submit"
+              className="flex-none [--btn-bg:var(--color-secondary)]! [--btn-border:var(--color-secondary)]!"
+            >
+              추가
+            </Button>
+          </div>
+        </Field>
+        <Text
+          role="status"
+          className="pt-2 text-[13px]! text-muted! empty:hidden"
+        >
           {feedback}
-        </p>
+        </Text>
       </form>
-      <section className="settings-sources">
-        <h2 className="settings-title">
+      <section className="flex flex-col gap-3">
+        <Subheading className="flex items-baseline justify-between px-1 pt-3 text-[13px]! font-bold! text-secondary!">
           RSS <span>{data.sources.length}</span>
-        </h2>
+        </Subheading>
         {data.sources.length === 0 && (
-          <p className="settings-empty">등록한 출처가 없어요.</p>
+          <Text className="px-3 py-12 text-center text-muted!">
+            등록한 출처가 없어요.
+          </Text>
         )}
         {data.sources.length > 0 && (
-          <div className="source-list">
+          <ul className="divide-y divide-line overflow-hidden rounded-[20px] border border-line bg-card">
             {data.sources.map((source) => {
               const status = statuses[source.url];
               const host = (() => {
@@ -94,31 +109,38 @@ export default function Subscriptions() {
                   ? `${host} · 새 소식을 확인하고 있어요.`
                   : `${host}${source.lastFetchedAt ? ` · ${new Date(source.lastFetchedAt).toLocaleDateString("ko-KR")} 업데이트` : " · 새 소식을 확인했어요."}`;
               return (
-                <div key={source.url} className="source-row">
-                  <span className="source-avatar" aria-hidden="true">
-                    {source.title.trim().charAt(0).toUpperCase()}
-                  </span>
-                  <div className="source-details">
-                    <strong>{source.title}</strong>
+                <li
+                  key={source.url}
+                  className="flex items-center gap-3 px-4 py-3.5"
+                >
+                  <Avatar
+                    initials={source.title.trim().charAt(0)}
+                    className="size-9 bg-avatar font-bold text-foreground"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <strong className="block truncate text-base text-foreground">
+                      {source.title}
+                    </strong>
                     <p
-                      className={`source-status ${status?.error ? "has-error" : ""}`}
+                      className={`mt-1 text-xs/normal wrap-anywhere ${status?.error ? "text-danger" : "text-muted"}`}
                     >
                       {subtitle}
                     </p>
                   </div>
                   {status?.error && (
                     <Button
-                      variant="outline"
+                      outline
                       disabled={status.loading}
                       onClick={() => void mutate(source.url)}
+                      className="flex-none"
                     >
                       다시 시도
                     </Button>
                   )}
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </section>
     </section>

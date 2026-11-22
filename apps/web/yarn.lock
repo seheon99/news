@@ -1801,15 +1801,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"class-variance-authority@npm:^0.7.1":
-  version: 0.7.1
-  resolution: "class-variance-authority@npm:0.7.1"
-  dependencies:
-    clsx: "npm:^2.1.1"
-  checksum: 10c0/0f438cea22131808b99272de0fa933c2532d5659773bfec0c583de7b3f038378996d3350683426b8e9c74a6286699382106d71fbec52f0dd5fbb191792cccb5b
-  languageName: node
-  linkType: hard
-
 "client-only@npm:0.0.1":
   version: 0.0.1
   resolution: "client-only@npm:0.0.1"
@@ -4715,13 +4706,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwind-merge@npm:^3.7.0":
-  version: 3.7.0
-  resolution: "tailwind-merge@npm:3.7.0"
-  checksum: 10c0/1b1439fe30b6ee63fc3abc1c985bf9beb8529eb2db21cc321bd8c7cf73f36cd4ec80846ea10af8ae09175810f385336c22a6ce355a0b5cce69432d49672f90c1
-  languageName: node
-  linkType: hard
-
 "tailwindcss@npm:4.3.5":
   version: 4.3.5
   resolution: "tailwindcss@npm:4.3.5"
@@ -5027,7 +5011,6 @@ __metadata:
     "@types/node": "npm:^20"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
-    class-variance-authority: "npm:^0.7.1"
     clsx: "npm:^2.1.1"
     es-toolkit: "npm:^1.53.2"
     eslint: "npm:^9"
@@ -5044,7 +5027,6 @@ __metadata:
     react-dom: "npm:19.3.0"
     rss-parser: "npm:^3.13.0"
     swr: "npm:^2.5.1"
-    tailwind-merge: "npm:^3.7.0"
     tailwindcss: "npm:4.3.5"
     typescript: "npm:^5"
     zustand: "npm:^5.1.0"

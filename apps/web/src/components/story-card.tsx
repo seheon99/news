@@ -1,7 +1,5 @@
 "use client";
-/* eslint-disable tailwindcss/no-custom-classname */
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import Link from "next/link";
 import {
   ArchiveBoxIcon,
   ArrowUpIcon,
@@ -11,7 +9,9 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { ArchiveBoxIcon as ArchiveBoxSolid } from "@heroicons/react/24/solid";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/catalyst/button";
+import { Heading } from "@/components/catalyst/heading";
+import { Text, TextLink } from "@/components/catalyst/text";
 import { gestureAction } from "@/lib/gesture";
 import { useReaderStore } from "@/stores/reader-provider";
 import { useFeedStatus } from "@/hooks/feed-sync";
@@ -143,13 +143,19 @@ export function StoryCard() {
       {story ? (
         <>
           {offset.x < -24 && (
-            <div className="story-swipe-hint is-skip" aria-hidden="true">
+            <div
+              className="pointer-events-none absolute top-0 bottom-[90px] -left-6 z-20 flex w-29 flex-col items-end gap-2 rounded-l-3xl bg-skip px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9"
+              aria-hidden="true"
+            >
               <TrashIcon />
               <span>안 읽기</span>
             </div>
           )}
           {offset.x > 24 && (
-            <div className="story-swipe-hint is-save" aria-hidden="true">
+            <div
+              className="pointer-events-none absolute top-0 -right-6 bottom-[90px] z-20 flex w-29 flex-col items-start gap-2 rounded-r-3xl bg-save px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9"
+              aria-hidden="true"
+            >
               <ArchiveBoxIcon />
               <span>저장</span>
             </div>
@@ -162,14 +168,17 @@ export function StoryCard() {
             style={{
               transform: `translate(${offset.x}px, ${offset.y}px) rotate(${offset.x / 20}deg)`,
             }}
-            className="story-card"
+            className="relative z-10 flex h-[calc(100dvh-280px)] max-h-[650px] min-h-[min(410px,calc(100dvh-350px))] cursor-grab touch-none flex-col overflow-hidden rounded-[20px] border border-line bg-card transition-transform duration-180 motion-reduce:transition-none"
             onClick={() => {
               if (!suppress.current)
                 window.open(story.url, "_blank", "noopener,noreferrer");
             }}
           >
-            <div className="story-card-content">
-              <h1 data-no-drag className="story-title">
+            <div className="flex min-h-0 flex-1 flex-col p-6">
+              <h1
+                data-no-drag
+                className="mt-3 mb-4 max-h-[45%] flex-none touch-pan-y scrollbar-thin overflow-auto overscroll-contain text-[27px]/[1.45] font-bold wrap-anywhere select-none"
+              >
                 <a
                   data-no-drag
                   href={story.url}
@@ -184,13 +193,15 @@ export function StoryCard() {
                 data-no-drag
                 tabIndex={0}
                 onClick={(e) => e.stopPropagation()}
-                className="story-description"
+                className="min-h-0 flex-1 touch-pan-y overflow-auto text-xl/[1.45] font-medium wrap-anywhere text-secondary"
               >
                 {story.description}
               </p>
-              <div className="story-meta">
-                <span className="story-source">{story.sourceTitle}</span>
-                <time>
+              <div className="mt-auto flex flex-none touch-none items-baseline justify-between gap-3 pt-4 text-xs text-muted">
+                <span className="min-w-0 flex-1 truncate font-semibold text-secondary">
+                  {story.sourceTitle}
+                </span>
+                <time className="flex-none whitespace-nowrap">
                   {story.publishedAt
                     ? new Date(story.publishedAt).toLocaleDateString("ko-KR")
                     : "날짜 정보 없음"}
@@ -200,22 +211,29 @@ export function StoryCard() {
           </article>
         </>
       ) : (
-        <div className="story-empty">
+        <div className="py-14 text-center text-muted">
           {hydrated &&
             data.sources.length > 0 &&
             !loading &&
             failed !== data.sources.length &&
-            Object.keys(data.stories).length > 0 && <CheckIcon />}
-          <h1>{empty}</h1>
+            Object.keys(data.stories).length > 0 && (
+              <CheckIcon className="mx-auto mb-5 block size-24" />
+            )}
+          <Heading className="text-xl! font-bold text-foreground!">
+            {empty}
+          </Heading>
           {!data.sources.length && hydrated && (
-            <Link href="/subscriptions" className="mt-4 inline-block underline">
-              구독 설정으로 이동
-            </Link>
+            <Text className="mt-4">
+              <TextLink href="/subscriptions">구독 설정으로 이동</TextLink>
+            </Text>
           )}
         </div>
       )}
       {story && (
-        <div aria-label="카드 선택" className="story-actions">
+        <div
+          aria-label="카드 선택"
+          className="grid grid-cols-[44px_minmax(0,1fr)_44px_minmax(0,1fr)_44px] gap-[5px] pt-3.5"
+        >
           {[
             {
               label: "직전 선택 되돌리기",
@@ -267,23 +285,29 @@ export function StoryCard() {
               aria-pressed={a.pressed}
               disabled={a.disabled}
               onClick={a.run}
-              variant="outline"
-              className={`story-action-button ${a.visibleLabel ? "story-action-button-with-label" : ""}`}
+              outline
+              className={`w-full min-w-11 items-center! gap-0.5! rounded-2xl! border-line! bg-card p-[3px]! text-secondary! [--btn-icon:currentColor]! aria-pressed:bg-secondary! aria-pressed:text-white! ${a.visibleLabel ? "min-h-14 flex-col gap-0! *:data-[slot=icon]:size-5!" : "min-h-12 *:data-[slot=icon]:size-6!"}`}
             >
               {a.icon}
-              {a.visibleLabel && <span>{a.visibleLabel}</span>}
+              {a.visibleLabel && (
+                <span className="text-xs/[1.2] font-semibold whitespace-nowrap">
+                  {a.visibleLabel}
+                </span>
+              )}
             </Button>
           ))}
         </div>
       )}
-      <p role="status" className="story-message">
+      <Text role="status" className="min-h-5 text-center text-xs! text-muted!">
         {message || (loading ? "새 소식을 확인하고 있어요." : "")}
         <span className="sr-only"> 선택 {announcement}</span>
-      </p>
+      </Text>
       {failed > 0 && (
-        <div className="story-feed-status">
-          <Link href="/subscriptions">출처 {failed}개를 불러오지 못했어요</Link>
-        </div>
+        <Text className="min-h-5 text-center text-xs! text-muted!">
+          <TextLink href="/subscriptions" className="text-secondary!">
+            출처 {failed}개를 불러오지 못했어요
+          </TextLink>
+        </Text>
       )}
     </div>
   );
