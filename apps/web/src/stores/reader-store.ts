@@ -10,9 +10,9 @@ import {
   type ReaderState,
 } from "../lib/reader.ts";
 
-export const STORAGE_KEY = "seug-reader-v1";
+export const STORAGE_KEY = "joobjoob-reader-v1";
 // ponytail: read-only fallback so pre-rename browsers keep their library; drop once nobody has it.
-const LEGACY_STORAGE_KEY = "moa-reader-v1";
+export const LEGACY_STORAGE_KEYS = ["seug-reader-v1", "moa-reader-v1"];
 type StorageAccess = Pick<Storage, "getItem" | "setItem">;
 type Snapshot = Pick<ReaderState, "queue" | "saved" | "skipped">;
 type ReaderStore = {
@@ -54,7 +54,9 @@ export function createReaderStore() {
         storage = disk;
         try {
           const raw =
-            disk.getItem(STORAGE_KEY) ?? disk.getItem(LEGACY_STORAGE_KEY);
+            [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]
+              .map((key) => disk.getItem(key))
+              .find((value) => value !== null) ?? null;
           set({
             data: raw === null ? createInitialState() : parseStoredState(raw),
             hydrated: true,

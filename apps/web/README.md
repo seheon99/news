@@ -1,1 +1,1 @@
-# 스윽 (SEUG)
+# 줍줍 (JOOBJOOB)

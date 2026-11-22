@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createReaderStore, STORAGE_KEY } from "./reader-store.ts";
+import {
+  createReaderStore,
+  LEGACY_STORAGE_KEYS,
+  STORAGE_KEY,
+} from "./reader-store.ts";
 
 const source = {
   url: "https://example.com/feed",
@@ -195,16 +199,18 @@ test("blocked storage reads remain visible and are never followed by destructive
   assert.equal(writes, 0);
 });
 
-test("data saved under the pre-rename key is still loaded", () => {
-  const old = storage();
-  const writer = createReaderStore();
-  writer.getState().hydrate(old);
-  writer.getState().merge(result(["one"]));
-  const legacy = {
-    getItem: (key: string) => (key === "moa-reader-v1" ? old.read() : null),
-    setItem: () => {},
-  };
-  const store = createReaderStore();
-  store.getState().hydrate(legacy);
-  assert.deepEqual(store.getState().data.queue, ["one"]);
+test("data saved under any pre-rename key is still loaded", () => {
+  for (const legacyKey of LEGACY_STORAGE_KEYS) {
+    const old = storage();
+    const writer = createReaderStore();
+    writer.getState().hydrate(old);
+    writer.getState().merge(result(["one"]));
+    const legacy = {
+      getItem: (key: string) => (key === legacyKey ? old.read() : null),
+      setItem: () => {},
+    };
+    const store = createReaderStore();
+    store.getState().hydrate(legacy);
+    assert.deepEqual(store.getState().data.queue, ["one"], legacyKey);
+  }
 });
