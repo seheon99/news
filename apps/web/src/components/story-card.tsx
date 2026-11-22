@@ -160,7 +160,12 @@ export function StoryCard() {
             style={{
               transform: `translate(${offset.x}px, ${offset.y}px) rotate(${offset.x / 20}deg)`,
             }}
-            className="relative z-10 flex max-h-[650px] min-h-0 flex-1 cursor-grab touch-none flex-col overflow-hidden rounded-[20px] border border-line bg-card transition-transform duration-180 select-none motion-reduce:transition-none"
+            className={`relative z-10 flex max-h-[650px] min-h-0 flex-1 cursor-grab touch-none flex-col overflow-hidden rounded-[20px] border border-line bg-card select-none ${
+              // Follow the finger 1:1 while dragging; only animate the snap-back.
+              offset.x || offset.y
+                ? ""
+                : "transition-transform duration-180 motion-reduce:transition-none"
+            }`}
             onClick={() => {
               if (!suppress.current)
                 window.open(story.url, "_blank", "noopener,noreferrer");
