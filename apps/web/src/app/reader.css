@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: "Maru Buri";
+  src: url("/fonts/maru-buri-regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Maru Buri";
+  src: url("/fonts/maru-buri-semibold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Maru Buri";
+  src: url("/fonts/maru-buri-bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Maru Buri", serif;
+  --color-background: #f6f4eb;
+  --color-card: #fffdf7;
+  --color-line: #dcddd0;
+  --color-foreground: #182b35;
+  --color-secondary: #46534b;
+  --color-muted: #647168;
+  --color-accent: #eeeee5;
+}
+
+@layer base {
+  body {
+    @apply overflow-hidden bg-background text-foreground font-sans;
+  }
+
+  :where(a, button, input):focus-visible {
+    @apply outline-2 outline-offset-3 outline-secondary;
+  }
+}

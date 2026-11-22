@@ -1,8 +1,0 @@
-.next/
-out/
-build/
-coverage/
-.yarn/
-yarn.lock
-next-env.d.ts
-AGENTS.md
