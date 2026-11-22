@@ -136,7 +136,7 @@ export function StoryCard() {
         <>
           {offset.x < -24 && (
             <div
-              className="pointer-events-none absolute top-0 bottom-[90px] -left-6 z-20 flex w-29 flex-col items-end gap-2 rounded-l-3xl bg-skip px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9"
+              className="pointer-events-none absolute top-0 bottom-[62px] -left-6 z-20 flex w-29 flex-col items-end gap-2 rounded-l-3xl bg-skip px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9"
               aria-hidden="true"
             >
               <TrashIcon />
@@ -145,7 +145,7 @@ export function StoryCard() {
           )}
           {offset.x > 24 && (
             <div
-              className="pointer-events-none absolute top-0 -right-6 bottom-[90px] z-20 flex w-29 flex-col items-start gap-2 rounded-r-3xl bg-save px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9"
+              className="pointer-events-none absolute top-0 -right-6 bottom-[62px] z-20 flex w-29 flex-col items-start gap-2 rounded-r-3xl bg-save px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9"
               aria-hidden="true"
             >
               <ArchiveBoxIcon />
@@ -291,10 +291,11 @@ export function StoryCard() {
           ))}
         </div>
       )}
-      <Text role="status" className="min-h-5 text-center text-xs! text-muted!">
+      {/* Screen-reader-only: announces each choice without a visible status line. */}
+      <p role="status" className="sr-only">
         {message || (loading ? "새 소식을 확인하고 있어요." : "")}
-        <span className="sr-only"> 선택 {announcement}</span>
-      </Text>
+        <span> 선택 {announcement}</span>
+      </p>
       {failed > 0 && (
         <Text className="min-h-5 text-center text-xs! text-muted!">
           <TextLink href="/subscriptions" className="text-secondary!">
