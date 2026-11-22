@@ -15,7 +15,7 @@ const tabs = [
   ["/subscriptions", "구독"],
 ] as const;
 
-export function Shell({ children }: { children: ReactNode }) {
+export function AppLayout({ children }: { children: ReactNode }) {
   const path = usePathname();
   const activeTab = tabs.findIndex(([href]) => href === path);
   const data = useReaderStore((s) => s.data);
