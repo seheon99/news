@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import "./reader.css";
 import { ReaderProvider } from "@/stores/reader-provider";
 import { Shell } from "@/components/shell";
+export const metadata: Metadata = {
+  title: "스윽",
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko">

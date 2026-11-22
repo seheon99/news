@@ -194,3 +194,17 @@ test("blocked storage reads remain visible and are never followed by destructive
   assert.deepEqual(store.getState().data.queue, ["one", "two"]);
   assert.equal(writes, 0);
 });
+
+test("data saved under the pre-rename key is still loaded", () => {
+  const old = storage();
+  const writer = createReaderStore();
+  writer.getState().hydrate(old);
+  writer.getState().merge(result(["one"]));
+  const legacy = {
+    getItem: (key: string) => (key === "moa-reader-v1" ? old.read() : null),
+    setItem: () => {},
+  };
+  const store = createReaderStore();
+  store.getState().hydrate(legacy);
+  assert.deepEqual(store.getState().data.queue, ["one"]);
+});
