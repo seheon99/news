@@ -2,7 +2,7 @@
 /* eslint-disable tailwindcss/no-custom-classname */
 import { useReaderStore } from "@/stores/reader-provider";
 
-export default function Saved() {
+export default function Library() {
   const data = useReaderStore((s) => s.data);
   const hydrated = useReaderStore((s) => s.hydrated);
   if (!hydrated) return null;

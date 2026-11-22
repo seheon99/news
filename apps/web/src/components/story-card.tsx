@@ -208,7 +208,7 @@ export function StoryCard() {
             Object.keys(data.stories).length > 0 && <CheckIcon />}
           <h1>{empty}</h1>
           {!data.sources.length && hydrated && (
-            <Link href="/settings" className="mt-4 inline-block underline">
+            <Link href="/subscriptions" className="mt-4 inline-block underline">
               구독 설정으로 이동
             </Link>
           )}
@@ -280,7 +280,7 @@ export function StoryCard() {
       </p>
       {failed > 0 && (
         <div className="story-feed-status">
-          <Link href="/settings">출처 {failed}개를 불러오지 못했어요</Link>
+          <Link href="/subscriptions">출처 {failed}개를 불러오지 못했어요</Link>
         </div>
       )}
     </div>

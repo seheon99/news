@@ -9,8 +9,8 @@ import { Alert } from "@/components/ui/alert";
 
 const tabs = [
   ["/", "피드"],
-  ["/saved", "보관함"],
-  ["/settings", "구독"],
+  ["/library", "보관함"],
+  ["/subscriptions", "구독"],
 ] as const;
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -19,9 +19,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const data = useReaderStore((s) => s.data);
   const error = useReaderStore((s) => s.storageError);
   const [title, count] =
-    path === "/saved"
+    path === "/library"
       ? ["보관함", Object.keys(data.saved).length]
-      : path === "/settings"
+      : path === "/subscriptions"
         ? ["구독", data.sources.length]
         : ["받은 항목", data.queue.length];
 
@@ -32,9 +32,9 @@ export function Shell({ children }: { children: ReactNode }) {
           <h1 className="reader-heading">
             {title} <span>{count}</span>
           </h1>
-          {path !== "/settings" && (
+          {path !== "/subscriptions" && (
             <Link
-              href="/settings"
+              href="/subscriptions"
               className="reader-settings"
               aria-label="구독 설정"
             >
