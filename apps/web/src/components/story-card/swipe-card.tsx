@@ -94,7 +94,7 @@ export function SwipeCard({
         style={{
           transform: `translate(${offset.x}px, ${offset.y}px) rotate(${offset.x / 20}deg)`,
         }}
-        className={`relative z-10 flex max-h-[650px] min-h-0 flex-1 cursor-grab touch-none flex-col overflow-hidden rounded-[20px] border border-line bg-card select-none ${
+        className={`relative z-10 flex flex-1 cursor-grab touch-none flex-col overflow-hidden rounded-[20px] border border-line bg-card select-none ${
           offset.x || offset.y
             ? ""
             : "transition-transform duration-180 motion-reduce:transition-none"
@@ -105,7 +105,7 @@ export function SwipeCard({
         }}
       >
         <div className="flex min-h-0 flex-1 flex-col p-6">
-          <h1 className="mt-3 mb-4 line-clamp-4 flex-none text-[27px]/[1.45] font-bold wrap-anywhere">
+          <h1 className="mt-3 mb-4 flex-none text-lg/[1.45] font-bold wrap-anywhere">
             <a
               href={story.url}
               target="_blank"
@@ -119,7 +119,7 @@ export function SwipeCard({
               {story.title}
             </a>
           </h1>
-          <p className="min-h-0 flex-1 overflow-hidden mask-b-from-70% text-xl/[1.45] font-medium wrap-anywhere text-secondary">
+          <p className="text-md/[1.45] min-h-0 flex-1 overflow-hidden mask-b-from-70% font-medium wrap-anywhere text-secondary">
             {story.description}
           </p>
           <div className="mt-auto flex flex-none items-baseline justify-between gap-3 pt-4 text-xs text-muted">
