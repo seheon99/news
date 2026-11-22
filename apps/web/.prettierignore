@@ -6,3 +6,5 @@ coverage/
 yarn.lock
 next-env.d.ts
 AGENTS.md
+# Vendored Catalyst UI kit; keep byte-identical for clean upgrades.
+src/components/catalyst/

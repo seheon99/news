@@ -34,6 +34,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored Catalyst UI kit (Tailwind Plus license); kept byte-identical for clean upgrades.
+    "src/components/catalyst/**",
   ]),
 ]);
 
