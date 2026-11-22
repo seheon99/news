@@ -74,7 +74,7 @@ export function SwipeCard({
           aria-hidden="true"
         >
           <TrashIcon />
-          <span>안 읽기</span>
+          <span>버리기</span>
         </div>
       )}
       {horizontal && offset.x > 0 && (

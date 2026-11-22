@@ -34,7 +34,7 @@ export function StoryCard() {
     setMessage(
       `${
         {
-          skip: "안 읽기로 넘겼어요.",
+          skip: "버렸어요.",
           store: "챙겼어요.",
           save: "북마크했어요.",
           defer: "맨 뒤로 보류했어요.",

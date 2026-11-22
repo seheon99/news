@@ -51,9 +51,9 @@ export function StoryActions({
           run: onUndo,
         },
         {
-          label: "안 읽기",
+          label: "버리기",
           icon: <TrashIcon />,
-          visibleLabel: "안 읽기",
+          visibleLabel: "버리기",
           run: () => onChoose("skip"),
         },
         {

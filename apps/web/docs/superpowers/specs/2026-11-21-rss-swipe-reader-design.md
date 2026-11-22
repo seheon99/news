@@ -54,14 +54,14 @@ Every article ends in exactly one category, in priority order bookmarked > store
 | ---------------------------------------- | ------------------------------------------------------------------------------- |
 | 북마크 button                            | Bookmark (keep) the story and show the next card                                |
 | Swipe right / 챙기기 button / ArrowRight | Store the story to read later and show the next card                            |
-| Swipe left / 안 읽기 button / ArrowLeft  | Drop the story: it leaves the feed and appears only in the library's last group |
+| Swipe left / 버리기 button / ArrowLeft   | Drop the story: it leaves the feed and appears only in the library's last group |
 | Swipe up / defer button / ArrowUp        | Move the current story to the end of the same selection queue                   |
 | Undo button / Ctrl+Z                     | Undo the previous choice, restoring queue, bookmarks, and stored marks          |
 | Card tap / title link                    | Open a safe HTTP(S) original link in a new tab without changing the queue       |
 
-- The action bar orders buttons by rising priority left to right (undo, 안 읽기, defer, 챙기기, 북마크); 북마크 is filled.
+- The action bar orders buttons by rising priority left to right (undo, 버리기, defer, 챙기기, 북마크); 북마크 is filled.
 - After the last card only the undo button remains (when there is history). Disable undo when no history exists.
-- While dragging, the red (안 읽기) or blue (챙기기) panel fades in with the drag and reaches full colour exactly at the
+- While dragging, the red (버리기) or blue (챙기기) panel fades in with the drag and reaches full colour exactly at the
   80px trigger point, where the icon pops. Devices with the Vibration API vibrate there; iOS Safari has no web haptic
   (a switch-input workaround was tried on iPhone and produced nothing), so iPhones get visual feedback only.
 - The whole card is draggable; the card follows the finger 1:1 and only the snap-back animates.
