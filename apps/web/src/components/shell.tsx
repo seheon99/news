@@ -58,7 +58,7 @@ export function Shell({ children }: { children: ReactNode }) {
         {error && (
           <Text
             role="alert"
-            className="mb-4 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-danger!"
+            className="mb-4 rounded-xl border border-red-700/30 bg-red-700/5 px-4 py-3 text-red-700!"
           >
             {error}
           </Text>

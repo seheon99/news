@@ -71,7 +71,7 @@ export function SwipeCard({
       <SwipeHint
         icon={<TrashIcon />}
         label="버리기"
-        className="justify-end bg-skip"
+        className="justify-end bg-red-500"
         opacity={offset.x < 0 ? reveal : 0}
         armed={armed === "skip"}
         settling={settling}
@@ -79,7 +79,7 @@ export function SwipeCard({
       <SwipeHint
         icon={<ArchiveBoxIcon />}
         label="챙기기"
-        className="justify-start bg-save"
+        className="justify-start bg-indigo-600"
         opacity={offset.x > 0 ? reveal : 0}
         armed={armed === "store"}
         settling={settling}

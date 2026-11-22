@@ -114,14 +114,14 @@ export default function Subscriptions() {
                 >
                   <Avatar
                     initials={source.title.trim().charAt(0)}
-                    className="size-9 bg-avatar font-bold text-foreground"
+                    className="size-9 bg-stone-200 font-bold text-foreground"
                   />
                   <div className="min-w-0 flex-1">
                     <strong className="block truncate text-base text-foreground">
                       {source.title}
                     </strong>
                     <p
-                      className={`mt-1 text-xs/normal wrap-anywhere ${status?.error ? "text-danger" : "text-muted"}`}
+                      className={`mt-1 text-xs/normal wrap-anywhere ${status?.error ? "text-red-700" : "text-muted"}`}
                     >
                       {subtitle}
                     </p>

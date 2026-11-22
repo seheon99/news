@@ -35,10 +35,6 @@
   --color-secondary: #46534b;
   --color-muted: #647168;
   --color-accent: #eeeee5;
-  --color-avatar: #ebe8dc;
-  --color-danger: #b42318;
-  --color-skip: #d74d3c;
-  --color-save: #4b50df;
 }
 
 @layer base {
