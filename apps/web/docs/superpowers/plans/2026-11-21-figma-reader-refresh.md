@@ -1,5 +1,12 @@
 # Figma Reader Presentation Implementation Plan
 
+> **Current state (2026-11-22):** this is a historical record, kept as written except for renamed paths.
+> Since then: the project is 줍줍 (JOOBJOOB); routes are `/library` and `/subscriptions` (was `/saved`, `/settings`);
+> shadcn/ui was replaced by the vendored Catalyst UI kit (`src/components/catalyst`) and all custom CSS classes by
+> Tailwind utilities; Figma SVG assets were replaced by Heroicons; fonts are self-hosted Maru Buri (not Noto);
+> the independent interest "heart" became 챙기기, one of three exclusive outcomes (bookmarked > stored > dropped).
+> The up-to-date behavior is in [the design spec](../specs/2026-11-21-rss-swipe-reader-design.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox syntax for tracking.
 
 **Goal:** Apply the supplied Figma visual design to the working RSS reader while preserving its current behavior.
@@ -14,7 +21,7 @@
 
 - English communication and documentation; Korean user-facing UI.
 - Preserve all five actions: undo, skip, defer to queue tail, independent interest heart, save and advance. Preserve arrow keys and Ctrl/Cmd+Z.
-- Preserve /, /saved, /settings URLs, current data validation, localStorage key/version, failed-read write blocking, refresh/error information, and expected-story guard during dragging.
+- Preserve /, /library, /subscriptions URLs (renamed from /saved, /settings), current data validation, localStorage key/version, failed-read write blocking, refresh/error information, and expected-story guard during dragging.
 - No status-model migration, five status filters, newsletter inbox/address, authentication controls, fake device status bar, or home indicator.
 - Preserve concurrent drag overflow fix in StoryCard.
 - Read relevant installed Next.js guides before implementation. Follow AGENTS.md/RTK shell requirements.
@@ -52,7 +59,7 @@
 
 ### Task 3: Saved library and subscriptions
 
-**Files:** src/app/saved/page.tsx; src/app/settings/page.tsx.
+**Files:** src/app/library/page.tsx; src/app/subscriptions/page.tsx.
 **Interfaces:** Existing saved timestamp ordering, RSS registration function, URL validation, fetchFeed, merge/mutate and source status shape remain unchanged.
 
 - [ ] Remove duplicated page headings now owned by Shell. Render saved entries as 20px rounded cream panels with 18px padding and 12px spacing, 19px serif titles, and 11–13px sans source/save metadata. Show actual title only; do not invent a Korean translation or newsletter source. An optional static 저장됨 label may describe the sole list, but no fake filters.

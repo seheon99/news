@@ -1,5 +1,12 @@
 # RSS Swipe Reader Implementation Plan
 
+> **Current state (2026-11-22):** this is a historical record, kept as written except for renamed paths.
+> Since then: the project is 줍줍 (JOOBJOOB); routes are `/library` and `/subscriptions` (was `/saved`, `/settings`);
+> shadcn/ui was replaced by the vendored Catalyst UI kit (`src/components/catalyst`) and all custom CSS classes by
+> Tailwind utilities; Figma SVG assets were replaced by Heroicons; fonts are self-hosted Maru Buri (not Noto);
+> the independent interest "heart" became 챙기기, one of three exclusive outcomes (bookmarked > stored > dropped).
+> The up-to-date behavior is in [the design spec](../specs/2026-11-21-rss-swipe-reader-design.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Communicate with every subagent exclusively in English. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Deliver issue #2 as an RSS/Atom swipe reader with browser-local subscriptions and selection state.
@@ -46,7 +53,7 @@
 - `src/components/feed-sync.tsx`: Mount per-source request hooks once under the provider so route navigation does not restart collection.
 - `src/components/reader-shell.tsx`: Header/navigation and compact fetch-status summary.
 - `src/components/story-card.tsx`: Pointer gestures, keyboard actions, original link, action bar, and interest state.
-- `src/app/page.tsx`, `src/app/saved/page.tsx`, `src/app/settings/page.tsx`: Discovery, saved stories, and subscription management.
+- `src/app/page.tsx`, `src/app/library/page.tsx`, `src/app/subscriptions/page.tsx`: Discovery, saved stories, and subscription management.
 - `src/app/layout.tsx`, `src/app/reader.css`: Provider, Korean document language, metadata, Tailwind import, and minimal shadcn theme tokens.
 - `src/components/ui/button.tsx`, `src/components/ui/input.tsx`, `src/components/ui/alert.tsx`: shadcn/ui controls used by the reader; add other components only if the screens require them.
 - `components.json`, `postcss.config.mjs`, `src/lib/utils.ts`: shadcn aliases, Tailwind v4 PostCSS integration, and the shared class-merging utility.
