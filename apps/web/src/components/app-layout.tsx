@@ -2,10 +2,10 @@
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
-import { Button } from "@/components/catalyst/button";
-import { Heading } from "@/components/catalyst/heading";
-import { Link } from "@/components/catalyst/link";
-import { Text } from "@/components/catalyst/text";
+import { Button } from "@/components/base/button";
+import { Heading } from "@/components/base/heading";
+import { Link } from "@/components/base/link";
+import { Text } from "@/components/base/text";
 import { libraryGroups } from "@/lib/reader/library-groups";
 import { useReaderStore } from "@/stores/use-reader-store";
 

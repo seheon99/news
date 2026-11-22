@@ -24,7 +24,7 @@ excluded from issue #2 but were subsequently added at the user's explicit reques
 - Account-based persistence is future work. Do not introduce accounts or a database now.
 - After reviewing a list-based design, the user selected a Tinder-inspired, single-card interface.
 - Open the original article in a new tab instead of building an article-content viewer.
-- Use Tailwind CSS and the Catalyst UI kit (Tailwind Plus, vendored unmodified in `src/components/catalyst`)
+- Use Tailwind CSS and the Catalyst UI kit (Tailwind Plus, vendored unmodified in `src/components/base`)
   for the interface, Zustand for browser-local reader state,
   SWR (`useSWR`) for feed request caching and revalidation, and es-toolkit for applicable data utilities.
 

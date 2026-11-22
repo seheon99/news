@@ -6,7 +6,7 @@ import {
   BookmarkIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/catalyst/button";
+import { Button } from "@/components/base/button";
 import type { Choice } from "@/lib/reader/types";
 
 const actionButton =

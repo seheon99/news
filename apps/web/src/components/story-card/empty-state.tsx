@@ -1,6 +1,6 @@
 import { CheckIcon } from "@heroicons/react/24/outline";
-import { Heading } from "@/components/catalyst/heading";
-import { Text, TextLink } from "@/components/catalyst/text";
+import { Heading } from "@/components/base/heading";
+import { Text, TextLink } from "@/components/base/text";
 
 export function EmptyState({
   hydrated,

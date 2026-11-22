@@ -1,11 +1,11 @@
 "use client";
 import { type FormEvent, useState } from "react";
-import { Avatar } from "@/components/catalyst/avatar";
-import { Button } from "@/components/catalyst/button";
-import { Field, Label } from "@/components/catalyst/fieldset";
-import { Subheading } from "@/components/catalyst/heading";
-import { Input } from "@/components/catalyst/input";
-import { Text } from "@/components/catalyst/text";
+import { Avatar } from "@/components/base/avatar";
+import { Button } from "@/components/base/button";
+import { Field, Label } from "@/components/base/fieldset";
+import { Subheading } from "@/components/base/heading";
+import { Input } from "@/components/base/input";
+import { Text } from "@/components/base/text";
 import { useFeedMutate } from "@/hooks/use-feed-mutate";
 import { fetchFeed } from "@/lib/feed/fetch-feed";
 import { normalizeFeedUrl } from "@/lib/feed/normalize-feed-url";

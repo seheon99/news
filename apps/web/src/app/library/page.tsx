@@ -4,7 +4,7 @@ import {
   BookmarkIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Text } from "@/components/catalyst/text";
+import { Text } from "@/components/base/text";
 import { LibrarySection } from "@/components/library-section";
 import { libraryGroups } from "@/lib/reader/library-groups";
 import { useReaderStore } from "@/stores/use-reader-store";

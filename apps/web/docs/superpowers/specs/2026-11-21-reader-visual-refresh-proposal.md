@@ -2,7 +2,7 @@
 
 > **Current state (2026-11-22):** this is a historical record, kept as written except for renamed paths.
 > Since then: the project is 줍줍 (JOOBJOOB); routes are `/library` and `/subscriptions` (was `/saved`, `/settings`);
-> shadcn/ui was replaced by the vendored Catalyst UI kit (`src/components/catalyst`) and all custom CSS classes by
+> shadcn/ui was replaced by the vendored Catalyst UI kit (`src/components/base`) and all custom CSS classes by
 > Tailwind utilities; Figma SVG assets were replaced by Heroicons; fonts are self-hosted Maru Buri (not Noto);
 > the independent interest "heart" became 챙기기, one of three exclusive outcomes (bookmarked > stored > dropped).
 > The up-to-date behavior is in [the design spec](2026-11-21-rss-swipe-reader-design.md).

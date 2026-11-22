@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useEffectEvent, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { Text, TextLink } from "@/components/catalyst/text";
+import { Text, TextLink } from "@/components/base/text";
 import type { Choice } from "@/lib/reader/types";
 import { useReaderStore } from "@/stores/use-reader-store";
 import { EmptyState } from "./empty-state";

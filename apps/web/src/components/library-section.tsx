@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import { Subheading } from "@/components/catalyst/heading";
+import { Subheading } from "@/components/base/heading";
 import { formatDate } from "@/lib/format-date";
 import type { LibraryEntry } from "@/lib/reader/types";
 
