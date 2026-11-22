@@ -63,10 +63,7 @@ export function StoryCard() {
     function key(e: KeyboardEvent) {
       if (
         e.target instanceof HTMLElement &&
-        // Focusable scroll regions (description) keep arrow keys for scrolling.
-        e.target.closest(
-          "input, textarea, select, [contenteditable], [data-no-drag][tabindex]",
-        )
+        e.target.closest("input, textarea, select, [contenteditable]")
       )
         return;
       if (
@@ -93,12 +90,7 @@ export function StoryCard() {
     return () => window.removeEventListener("keydown", key);
   }, [choose, undo, story, canUndo]);
   function down(e: PointerEvent<HTMLElement>) {
-    if (
-      (e.target as HTMLElement).closest("[data-no-drag]") ||
-      (e.pointerType === "mouse" && e.button !== 0)
-    )
-      return;
-    if (!story) return;
+    if ((e.pointerType === "mouse" && e.button !== 0) || !story) return;
     drag.current = { x: e.clientX, y: e.clientY, moved: false, id: story.id };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
@@ -139,7 +131,7 @@ export function StoryCard() {
             ? "모든 소식을 살펴봤어요."
             : "아직 받아온 소식이 없어요.";
   return (
-    <div className="relative mx-auto max-w-[470px] overflow-x-clip">
+    <div className="relative mx-auto flex min-h-0 w-full max-w-[470px] flex-1 flex-col overflow-x-clip">
       {story ? (
         <>
           {offset.x < -24 && (
@@ -168,36 +160,32 @@ export function StoryCard() {
             style={{
               transform: `translate(${offset.x}px, ${offset.y}px) rotate(${offset.x / 20}deg)`,
             }}
-            className="relative z-10 flex h-[calc(100dvh-280px)] max-h-[650px] min-h-[min(410px,calc(100dvh-350px))] cursor-grab touch-none flex-col overflow-hidden rounded-[20px] border border-line bg-card transition-transform duration-180 motion-reduce:transition-none"
+            className="relative z-10 flex max-h-[650px] min-h-0 flex-1 cursor-grab touch-none flex-col overflow-hidden rounded-[20px] border border-line bg-card transition-transform duration-180 select-none motion-reduce:transition-none"
             onClick={() => {
               if (!suppress.current)
                 window.open(story.url, "_blank", "noopener,noreferrer");
             }}
           >
             <div className="flex min-h-0 flex-1 flex-col p-6">
-              <h1
-                data-no-drag
-                className="mt-3 mb-4 max-h-[45%] flex-none touch-pan-y scrollbar-thin overflow-auto overscroll-contain text-[27px]/[1.45] font-bold wrap-anywhere select-none"
-              >
+              <h1 className="mt-3 mb-4 line-clamp-4 flex-none text-[27px]/[1.45] font-bold wrap-anywhere">
                 <a
-                  data-no-drag
                   href={story.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  draggable={false}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (suppress.current) e.preventDefault();
+                  }}
                 >
                   {story.title}
                 </a>
               </h1>
-              <p
-                data-no-drag
-                tabIndex={0}
-                onClick={(e) => e.stopPropagation()}
-                className="min-h-0 flex-1 touch-pan-y overflow-auto text-xl/[1.45] font-medium wrap-anywhere text-secondary"
-              >
+              {/* ponytail: card shows a fading preview; the full text is one tap away in the original article. */}
+              <p className="min-h-0 flex-1 overflow-hidden mask-b-from-70% text-xl/[1.45] font-medium wrap-anywhere text-secondary">
                 {story.description}
               </p>
-              <div className="mt-auto flex flex-none touch-none items-baseline justify-between gap-3 pt-4 text-xs text-muted">
+              <div className="mt-auto flex flex-none items-baseline justify-between gap-3 pt-4 text-xs text-muted">
                 <span className="min-w-0 flex-1 truncate font-semibold text-secondary">
                   {story.sourceTitle}
                 </span>
@@ -286,11 +274,11 @@ export function StoryCard() {
               disabled={a.disabled}
               onClick={a.run}
               outline
-              className={`w-full min-w-11 items-center! gap-0.5! rounded-2xl! border-line! bg-card p-[3px]! text-secondary! [--btn-icon:currentColor]! aria-pressed:bg-secondary! aria-pressed:text-white! ${a.visibleLabel ? "min-h-14 flex-col gap-0! *:data-[slot=icon]:size-5!" : "min-h-12 *:data-[slot=icon]:size-6!"}`}
+              className={`min-h-12 w-full min-w-11 items-center! gap-0.5! rounded-2xl! border-line! bg-card p-[3px]! text-secondary! [--btn-icon:currentColor]! aria-pressed:bg-secondary! aria-pressed:text-white! ${a.visibleLabel ? "gap-1.5! *:data-[slot=icon]:size-5!" : "*:data-[slot=icon]:size-6!"}`}
             >
               {a.icon}
               {a.visibleLabel && (
-                <span className="text-xs/[1.2] font-semibold whitespace-nowrap">
+                <span className="text-sm font-semibold whitespace-nowrap">
                   {a.visibleLabel}
                 </span>
               )}

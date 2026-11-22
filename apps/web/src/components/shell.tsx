@@ -27,7 +27,7 @@ export function Shell({ children }: { children: ReactNode }) {
         : ["받은 항목", data.queue.length];
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-105 flex-col pb-[env(safe-area-inset-bottom)]">
+    <div className="mx-auto flex h-dvh w-full max-w-105 flex-col pb-[env(safe-area-inset-bottom)]">
       <header className="flex-none px-6 pt-5 pb-2 max-[420px]:px-5 max-[420px]:pt-3">
         <div className="mx-auto flex w-full max-w-[470px] items-center justify-between">
           <Heading className="text-[28px]/[1.45]! font-bold! tracking-[-0.04em] text-foreground!">
@@ -48,7 +48,7 @@ export function Shell({ children }: { children: ReactNode }) {
           )}
         </div>
       </header>
-      <main className="mx-auto w-full max-w-[518px] flex-[1_0_auto] px-6 pt-2 pb-4 max-[420px]:px-5 max-[420px]:pb-3">
+      <main className="mx-auto flex min-h-0 w-full max-w-[518px] flex-1 flex-col overflow-y-auto px-6 pt-2 pb-4 max-[420px]:px-5 max-[420px]:pb-3">
         {error && (
           <Text
             role="alert"
