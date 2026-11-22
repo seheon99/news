@@ -39,9 +39,9 @@ export function StoryActions({
       )
     );
   return (
-    <div
+    <fieldset
       aria-label="카드 선택"
-      className="grid grid-cols-[44px_minmax(0,1fr)_44px_minmax(0,1fr)_44px] gap-[5px] pt-3.5"
+      className="grid min-w-0 grid-cols-[44px_minmax(0,1fr)_44px_minmax(0,1fr)_44px] gap-[5px] pt-3.5"
     >
       {[
         {
@@ -91,6 +91,6 @@ export function StoryActions({
           )}
         </Button>
       ))}
-    </div>
+    </fieldset>
   );
 }

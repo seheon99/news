@@ -1,10 +1,10 @@
-import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
-import { POST } from "./route.ts";
 import dns from "node:dns/promises";
-import http from "node:http";
 import { EventEmitter } from "node:events";
+import http from "node:http";
 import { Readable } from "node:stream";
+import test, { type TestContext } from "node:test";
+import { POST } from "./route.ts";
 
 test("returns safe errors and no-store for invalid or oversized input", async () => {
   for (const body of [

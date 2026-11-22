@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import Parser from "rss-parser";
 import { Parser as HtmlParser } from "htmlparser2";
+import Parser from "rss-parser";
 import { FeedError } from "./feed-url.ts";
 import type { FeedResult, Story } from "./reader.ts";
 

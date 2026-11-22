@@ -6,12 +6,12 @@ import {
   MAX_ARCHIVED_STORIES,
   mergeFeed,
   parseStoredState,
-  selectStory,
-  serializeState,
-  validateReaderState,
   type ReaderState,
   type Source,
   type Story,
+  selectStory,
+  serializeState,
+  validateReaderState,
 } from "./reader.ts";
 
 const time = "2026-11-21T00:00:00.000Z";
@@ -269,7 +269,10 @@ test("feed IDs matching object prototype properties keep their own story and int
   assert.deepEqual(after.queue, ["constructor"]);
   assert.equal(Object.hasOwn(after.stories, "__proto__"), true);
   assert.equal(Object.hasOwn(after.interests, "__proto__"), true);
-  assert.equal(after.interests.__proto__, time);
+  assert.equal(
+    Object.getOwnPropertyDescriptor(after.interests, "__proto__")?.value,
+    time,
+  );
   assert.deepEqual(parseStoredState(serializeState(after)), after);
   assert.deepEqual(
     libraryGroups(after).stored.map((e) => e.story.id),

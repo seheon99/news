@@ -1,13 +1,13 @@
 import { createStore } from "zustand/vanilla";
 import {
+  type Choice,
   createInitialState,
+  type FeedResult,
   mergeFeed,
   parseStoredState,
+  type ReaderState,
   selectStory,
   serializeState,
-  type Choice,
-  type FeedResult,
-  type ReaderState,
 } from "../lib/reader.ts";
 
 export const STORAGE_KEY = "joobjoob-reader-v1";

@@ -1,10 +1,10 @@
-import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
-import { downloadFeed } from "./feed-fetch.ts";
 import dns from "node:dns/promises";
-import http from "node:http";
 import { EventEmitter } from "node:events";
+import http from "node:http";
 import { Readable } from "node:stream";
+import test, { type TestContext } from "node:test";
+import { downloadFeed } from "./feed-fetch.ts";
 
 test("rejects credentials, nonstandard ports, localhost and private IP literals", async () => {
   for (const url of [

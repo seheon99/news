@@ -2,12 +2,12 @@
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
-import { libraryGroups } from "@/lib/reader";
-import { useReaderStore } from "@/stores/reader-provider";
 import { Button } from "@/components/catalyst/button";
 import { Heading } from "@/components/catalyst/heading";
 import { Link } from "@/components/catalyst/link";
 import { Text } from "@/components/catalyst/text";
+import { libraryGroups } from "@/lib/reader";
+import { useReaderStore } from "@/stores/reader-provider";
 
 const tabs = [
   ["/", "피드"],

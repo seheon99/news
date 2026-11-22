@@ -1,6 +1,7 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { gestureAction } from "./gesture.ts";
+
 test("gestures require 80 pixels on the dominant axis and ignore downward motion", () => {
   assert.equal(gestureAction(79, 0), null);
   assert.equal(gestureAction(-80, 10), "skip");

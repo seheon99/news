@@ -7,7 +7,7 @@ import {
 import type { ComponentType, SVGProps } from "react";
 import { Subheading } from "@/components/catalyst/heading";
 import { Text } from "@/components/catalyst/text";
-import { libraryGroups, type LibraryEntry } from "@/lib/reader";
+import { type LibraryEntry, libraryGroups } from "@/lib/reader";
 import { useReaderStore } from "@/stores/reader-provider";
 
 const date = (at: string | null) =>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./reader.css";
-import { ReaderProvider } from "@/stores/reader-provider";
 import { Shell } from "@/components/shell";
+import { ReaderProvider } from "@/stores/reader-provider";
 export const metadata: Metadata = {
   title: "줍줍",
 };

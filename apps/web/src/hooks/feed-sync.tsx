@@ -1,18 +1,18 @@
 "use client";
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useState,
-  type ReactNode,
 } from "react";
 import useSWR, { SWRConfig, useSWRConfig } from "swr";
 import {
   createInitialState,
+  type FeedResult,
   mergeFeed,
   validateReaderState,
-  type FeedResult,
 } from "../lib/reader";
 import { useReaderStore } from "../stores/reader-provider";
 
@@ -72,10 +72,13 @@ type FeedContextValue = {
   setStatus: (url: string, status: Status) => void;
 };
 const FeedContext = createContext<FeedContextValue | null>(null);
-export function useFeedStatus() {
+function useFeedContext() {
   const value = useContext(FeedContext);
   if (!value) throw Error("FeedSync missing");
-  return value.statuses;
+  return value;
+}
+export function useFeedStatus() {
+  return useFeedContext().statuses;
 }
 export function useFeed(sourceUrl: string) {
   const hydrated = useReaderStore((s) => s.hydrated);
@@ -92,8 +95,7 @@ export function useFeed(sourceUrl: string) {
 }
 function SourceSync({ url }: { url: string }) {
   const feed = useFeed(url);
-  const context = useContext(FeedContext)!;
-  const { setStatus } = context;
+  const { setStatus } = useFeedContext();
   useEffect(() => {
     setStatus(url, {
       loading: feed.isValidating,
