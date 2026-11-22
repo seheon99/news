@@ -1,6 +1,5 @@
 "use client";
-import { type ReactNode, useEffect } from "react";
-import useSWR, { SWRConfig, useSWRConfig } from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import {
   createInitialState,
   type FeedResult,
@@ -68,35 +67,6 @@ export function useFeed(sourceUrl: string) {
     onSuccess: merge,
   });
   return feed;
-}
-function SourceSync({ url }: { url: string }) {
-  const feed = useFeed(url);
-  const setStatus = useReaderStore((s) => s.setStatus);
-  useEffect(() => {
-    setStatus(url, {
-      loading: feed.isValidating,
-      error: feed.error?.message,
-    });
-  }, [url, feed.isValidating, feed.error, setStatus]);
-  return null;
-}
-function SyncChildren({ children }: { children?: ReactNode }) {
-  const sources = useReaderStore((s) => s.data.sources);
-  return (
-    <>
-      {sources.map((s) => (
-        <SourceSync key={s.url} url={s.url} />
-      ))}
-      {children}
-    </>
-  );
-}
-export function FeedSync({ children }: { children?: ReactNode }) {
-  return (
-    <SWRConfig value={{ provider: () => new Map() }}>
-      <SyncChildren>{children}</SyncChildren>
-    </SWRConfig>
-  );
 }
 export function useFeedMutate() {
   return useSWRConfig().mutate;

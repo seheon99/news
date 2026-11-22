@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { useStore } from "zustand";
-import { FeedSync } from "../hooks/feed-sync";
+import { FeedSync } from "../components/feed-sync";
 import { parseStoredState } from "../lib/reader";
 import {
   createReaderStore,
