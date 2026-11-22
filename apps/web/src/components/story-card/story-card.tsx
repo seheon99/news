@@ -80,7 +80,7 @@ export function StoryCard() {
     return () => window.removeEventListener("keydown", key);
   }, []);
   return (
-    <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-x-clip">
+    <div className="relative flex min-h-0 w-full flex-1 flex-col">
       {story ? (
         <SwipeCard story={story} onChoose={act} />
       ) : (

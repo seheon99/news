@@ -52,7 +52,9 @@ export function Shell({ children }: { children: ReactNode }) {
           )}
         </div>
       </header>
-      <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto px-6 pt-2 pb-4 max-[420px]:px-5 max-[420px]:pb-3">
+      <main
+        className={`flex min-h-0 w-full flex-1 flex-col ${path === "/" ? "" : "overflow-y-auto"} px-6 pt-2 pb-4 max-[420px]:px-5 max-[420px]:pb-3`}
+      >
         {error && (
           <Text
             role="alert"

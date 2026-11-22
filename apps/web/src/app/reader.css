@@ -43,7 +43,7 @@
 
 @layer base {
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply overflow-hidden bg-background text-foreground font-sans;
   }
 
   :where(a, button, input):focus-visible {
