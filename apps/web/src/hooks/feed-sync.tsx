@@ -66,8 +66,6 @@ export async function fetchFeed(url: string): Promise<FeedResult> {
 type Status = {
   loading: boolean;
   error?: string;
-  success?: boolean;
-  failedAt?: string;
 };
 type FeedContextValue = {
   statuses: Record<string, Status>;
@@ -81,20 +79,15 @@ export function useFeedStatus() {
 }
 export function useFeed(sourceUrl: string) {
   const hydrated = useReaderStore((s) => s.hydrated);
-  const { setStatus } = useContext(FeedContext)!;
   const merge = useReaderStore((s) => s.merge);
   const feed = useSWR(hydrated ? sourceUrl : null, fetchFeed, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    // Cached data (e.g. written by mutate after registering) is not refetched on mount.
+    revalidateIfStale: false,
     shouldRetryOnError: false,
     refreshInterval: 0,
     onSuccess: merge,
-    onError: (error: Error) =>
-      setStatus(sourceUrl, {
-        loading: false,
-        error: error.message,
-        failedAt: new Date().toISOString(),
-      }),
   });
   return feed;
 }
@@ -107,9 +100,8 @@ function SourceSync({ url }: { url: string }) {
     setStatus(url, {
       loading: feed.isValidating,
       error: feed.error?.message,
-      success: !!feed.data && !feed.error,
     });
-  }, [url, feed.isValidating, feed.error, feed.data, setStatus]);
+  }, [url, feed.isValidating, feed.error, setStatus]);
   return null;
 }
 function SyncChildren({ children }: { children: ReactNode }) {

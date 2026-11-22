@@ -18,6 +18,7 @@ export function StoryCard() {
   const undo = useReaderStore((s) => s.undo);
   const interest = useReaderStore((s) => s.interest);
   const history = useReaderStore((s) => s.history);
+  const canUndo = history.length > 0;
   const statuses = useFeedStatus();
   const [message, setMessage] = useState("");
   const [announcement, setAnnouncement] = useState(0);
@@ -55,7 +56,10 @@ export function StoryCard() {
     function key(e: KeyboardEvent) {
       if (
         e.target instanceof HTMLElement &&
-        e.target.closest("input, textarea, button, a, select, [data-no-drag]")
+        // Focusable scroll regions (description) keep arrow keys for scrolling.
+        e.target.closest(
+          "input, textarea, select, [contenteditable], [data-no-drag][tabindex]",
+        )
       )
         return;
       if (
@@ -72,7 +76,7 @@ export function StoryCard() {
         e.preventDefault();
         choose(action);
         announce(action, story.title);
-      } else if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "z" && canUndo) {
         e.preventDefault();
         undo();
         setMessage("직전 선택을 되돌렸어요.");
@@ -80,7 +84,7 @@ export function StoryCard() {
     }
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [choose, undo, story]);
+  }, [choose, undo, story, canUndo]);
   function down(e: PointerEvent<HTMLElement>) {
     if (
       (e.target as HTMLElement).closest("[data-no-drag]") ||

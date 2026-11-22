@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fetchFeed, useFeedMutate, useFeedStatus } from "@/hooks/feed-sync";
+import { normalizeFeedUrl } from "@/lib/feed-url";
 import { useReaderStore } from "@/stores/reader-provider";
 
 export default function Settings() {
@@ -19,16 +20,7 @@ export default function Settings() {
     event.preventDefault();
     let normalized: string;
     try {
-      const parsed = new URL(url.trim());
-      if (
-        !["http:", "https:"].includes(parsed.protocol) ||
-        parsed.username ||
-        parsed.password ||
-        parsed.port
-      )
-        throw Error();
-      parsed.hash = "";
-      normalized = parsed.href;
+      normalized = normalizeFeedUrl(url.trim());
     } catch {
       setFeedback("올바른 HTTP 또는 HTTPS 피드 주소를 입력해 주세요.");
       return;
@@ -41,8 +33,9 @@ export default function Settings() {
     setFeedback("피드를 확인하고 있어요.");
     try {
       const result = await fetchFeed(normalized);
-      merge(result);
+      // Seed the SWR cache first so the SourceSync mounted by this merge does not refetch.
       await mutate(normalized, result, { revalidate: false });
+      merge(result);
       setUrl("");
       setFeedback("구독을 등록했어요.");
     } catch {

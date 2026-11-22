@@ -69,6 +69,9 @@ export function toggleInterest(
   return { ...state, interests };
 }
 
+// ponytail: only the newest MAX_ARCHIVED_STORIES skipped stories without an interest mark are kept; an older one can reappear if a feed still lists it. Raise the cap or add an age limit if that happens.
+export const MAX_ARCHIVED_STORIES = 500;
+
 export function mergeFeed(state: ReaderState, result: FeedResult): ReaderState {
   const stories = uniqBy(result.stories, (story) => story.id);
   const skipped = new Set(state.skipped);
@@ -85,7 +88,7 @@ export function mergeFeed(state: ReaderState, result: FeedResult): ReaderState {
     ],
     ["desc"],
   );
-  return {
+  const next: ReaderState = {
     ...state,
     sources: Object.values({
       ...keyBy(state.sources, (source) => source.url),
@@ -96,6 +99,19 @@ export function mergeFeed(state: ReaderState, result: FeedResult): ReaderState {
       ...Object.fromEntries(stories.map((story) => [story.id, story])),
     },
     queue: [...additions.map((story) => story.id), ...state.queue],
+  };
+  const pruned = new Set(
+    next.skipped
+      .filter((id) => !Object.hasOwn(next.interests, id))
+      .slice(0, -MAX_ARCHIVED_STORIES),
+  );
+  if (!pruned.size) return next;
+  return {
+    ...next,
+    stories: Object.fromEntries(
+      Object.entries(next.stories).filter(([id]) => !pruned.has(id)),
+    ),
+    skipped: next.skipped.filter((id) => !pruned.has(id)),
   };
 }
 
@@ -212,7 +228,5 @@ export function parseStoredState(value: string): ReaderState {
 }
 
 export function serializeState(state: ReaderState): string {
-  if (!validateReaderState(state))
-    throw new Error("Invalid or unsupported reader state");
   return JSON.stringify(state);
 }

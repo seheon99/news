@@ -444,7 +444,7 @@ input:focus-visible {
   border-radius: 20px;
   background: var(--card);
   cursor: grab;
-  touch-action: pan-y;
+  touch-action: none;
   transition: transform 180ms ease;
 }
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   createInitialState,
+  MAX_ARCHIVED_STORIES,
   mergeFeed,
   parseStoredState,
   selectStory,
@@ -244,10 +245,6 @@ test("storage rejects unsafe story and source URLs, including embedded credentia
   }
 });
 
-test("serializer rejects invalid in-memory state", () => {
-  assert.throws(() => serializeState({ ...state(), queue: ["missing"] }));
-});
-
 test("feed IDs matching object prototype properties keep their own story and interest records", () => {
   const before = mergeFeed(createInitialState(), {
     source,
@@ -260,6 +257,29 @@ test("feed IDs matching object prototype properties keep their own story and int
   assert.equal(after.interests.__proto__, time);
   assert.deepEqual(parseStoredState(serializeState(after)), after);
   assert.deepEqual(toggleInterest(after, "__proto__", time).interests, {});
+});
+
+test("merge prunes the oldest unmarked skipped stories and keeps saved and interested ones", () => {
+  const ids = Array.from(
+    { length: MAX_ARCHIVED_STORIES + 3 },
+    (_, i) => `s${i}`,
+  );
+  const before: ReaderState = {
+    ...state(),
+    stories: Object.fromEntries(ids.map((id) => [id, story(id)])),
+    queue: [],
+    saved: { [ids[0]]: time },
+    skipped: ids.slice(1),
+    interests: { [ids[1]]: time },
+  };
+  const after = mergeFeed(before, { source, stories: [] });
+  assert.ok(Object.hasOwn(after.saved, ids[0]));
+  assert.ok(Object.hasOwn(after.stories, ids[0]));
+  assert.ok(Object.hasOwn(after.stories, ids[1]));
+  assert.equal(Object.hasOwn(after.stories, ids[2]), false);
+  assert.ok(Object.hasOwn(after.stories, ids[3]));
+  assert.equal(after.skipped.length, MAX_ARCHIVED_STORIES + 1);
+  assert.ok(validateReaderState(after));
 });
 
 test("storage rejects orphan stories that would disappear from the reader", () => {

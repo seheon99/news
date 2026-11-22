@@ -68,10 +68,12 @@ export function createReaderStore() {
       merge: (result) => {
         const current = get().data;
         const next = mergeFeed(current, result);
-        update(
-          next,
-          next.queue.length !== current.queue.length ? [] : get().history,
-        );
+        // Snapshots may reference stories that a merge added or pruned, so drop them.
+        const changed =
+          next.queue.length !== current.queue.length ||
+          Object.keys(next.stories).length !==
+            Object.keys(current.stories).length;
+        update(next, changed ? [] : get().history);
       },
       isCurrent: (id) => get().data.queue[0] === id,
       choose: (action, expectedId) => {

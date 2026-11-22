@@ -4,6 +4,8 @@ import { useReaderStore } from "@/stores/reader-provider";
 
 export default function Saved() {
   const data = useReaderStore((s) => s.data);
+  const hydrated = useReaderStore((s) => s.hydrated);
+  if (!hydrated) return null;
   const entries = Object.entries(data.saved).sort((a, b) =>
     b[1].localeCompare(a[1]),
   );
