@@ -36,7 +36,6 @@ export default function Subscriptions() {
     setFeedback("피드를 확인하고 있어요.");
     try {
       const result = await fetchFeed(normalized);
-      // Seed the SWR cache first so the SourceSync mounted by this merge does not refetch.
       await mutate(normalized, result, { revalidate: false });
       merge(result);
       setUrl("");

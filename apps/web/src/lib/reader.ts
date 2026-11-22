@@ -41,10 +41,6 @@ export function createInitialState(): ReaderState {
   };
 }
 
-/**
- * save = bookmarked (keep), store = stored (챙기기, read later), skip = dropped.
- * Stored stories live in `skipped` with an `interests` mark, so the persisted format is unchanged.
- */
 export type Choice = "skip" | "store" | "save" | "defer";
 
 export function selectStory(
@@ -65,7 +61,6 @@ export function selectStory(
 
 export type LibraryEntry = { story: Story; at: string | null };
 
-/** Library groups in priority order: bookmarked > stored > dropped, newest first. */
 export function libraryGroups(state: ReaderState) {
   const entry = (id: string, at: string | null): LibraryEntry[] =>
     Object.hasOwn(state.stories, id) ? [{ story: state.stories[id], at }] : [];
@@ -80,7 +75,6 @@ export function libraryGroups(state: ReaderState) {
       .filter(stored)
       .flatMap((id) => entry(id, state.interests[id]))
       .sort(byDate),
-    // Dropped has no timestamp; `skipped` is in choice order, so reverse it.
     dropped: state.skipped
       .filter((id) => !stored(id))
       .reverse()
@@ -88,7 +82,6 @@ export function libraryGroups(state: ReaderState) {
   };
 }
 
-// ponytail: only the newest MAX_ARCHIVED_STORIES skipped stories without an interest mark are kept; an older one can reappear if a feed still lists it. Raise the cap or add an age limit if that happens.
 export const MAX_ARCHIVED_STORIES = 500;
 
 export function mergeFeed(state: ReaderState, result: FeedResult): ReaderState {

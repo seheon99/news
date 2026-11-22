@@ -32,7 +32,6 @@ function Section({
         {title} <span className="font-medium text-muted">{entries.length}</span>
       </Subheading>
       {compact ? (
-        // Dropped: lowest priority, so a muted one-line list instead of cards.
         <ul className="divide-y divide-line rounded-[20px] border border-line">
           {entries.map(({ story }) => (
             <li key={story.id}>
@@ -88,7 +87,6 @@ export default function Library() {
         아직 보관한 소식이 없어요.
       </Text>
     );
-  // Priority order: bookmarked > stored > dropped.
   return (
     <div className="flex flex-col gap-4 pb-2">
       <Section title="북마크" Icon={BookmarkIcon} entries={bookmarked} />

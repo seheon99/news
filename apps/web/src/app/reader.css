@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* The app is light-only: Catalyst's dark: styles apply only under an explicit .dark class. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {

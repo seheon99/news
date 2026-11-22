@@ -83,7 +83,6 @@ export function useFeed(sourceUrl: string) {
   const feed = useSWR(hydrated ? sourceUrl : null, fetchFeed, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
-    // Cached data (e.g. written by mutate after registering) is not refetched on mount.
     revalidateIfStale: false,
     shouldRetryOnError: false,
     refreshInterval: 0,
@@ -94,7 +93,6 @@ export function useFeed(sourceUrl: string) {
 function SourceSync({ url }: { url: string }) {
   const feed = useFeed(url);
   const context = useContext(FeedContext)!;
-  // Updates are committed after render to avoid changing a parent during child rendering.
   const { setStatus } = context;
   useEffect(() => {
     setStatus(url, {

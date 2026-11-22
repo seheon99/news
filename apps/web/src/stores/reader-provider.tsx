@@ -38,14 +38,11 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
     }
   }, [store]);
   useEffect(() => {
-    // Another tab wrote new state: adopt it without writing back to storage.
     function onStorage(e: StorageEvent) {
       if (e.key !== STORAGE_KEY || e.newValue === null) return;
       try {
         store.setState({ data: parseStoredState(e.newValue), history: [] });
-      } catch {
-        // Ignore values this build cannot validate; the local state stays as is.
-      }
+      } catch {}
     }
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);

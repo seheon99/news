@@ -1,4 +1,3 @@
-// Maps the tsconfig "@/*" alias to src/ for `node --test`; Next and tsc read tsconfig paths themselves.
 import { registerHooks } from "node:module";
 
 const src = new URL("../src/", import.meta.url);

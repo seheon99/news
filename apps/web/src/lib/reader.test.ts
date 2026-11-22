@@ -117,10 +117,10 @@ test("library groups bookmarked > stored > dropped, each newest first", () => {
     stories: { ...state().stories, d: story("d") },
   };
   s = { ...s, queue: ["a", "b", "c", "d"] };
-  s = selectStory(s, "skip"); // a dropped
-  s = selectStory(s, "store", time); // b stored
-  s = selectStory(s, "save", time); // c bookmarked
-  s = selectStory(s, "store", later); // d stored later
+  s = selectStory(s, "skip");
+  s = selectStory(s, "store", time);
+  s = selectStory(s, "save", time);
+  s = selectStory(s, "store", later);
   const groups = libraryGroups(s);
   const ids = (list: { story: Story }[]) => list.map((e) => e.story.id);
   assert.deepEqual(Object.keys(groups), ["bookmarked", "stored", "dropped"]);

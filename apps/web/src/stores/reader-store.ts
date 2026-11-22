@@ -11,7 +11,6 @@ import {
 } from "../lib/reader.ts";
 
 export const STORAGE_KEY = "joobjoob-reader-v1";
-// ponytail: read-only fallback so pre-rename browsers keep their library; drop once nobody has it.
 export const LEGACY_STORAGE_KEYS = ["seug-reader-v1", "moa-reader-v1"];
 type StorageAccess = Pick<Storage, "getItem" | "setItem">;
 type Snapshot = Pick<ReaderState, "queue" | "saved" | "skipped" | "interests">;
@@ -72,7 +71,6 @@ export function createReaderStore() {
       merge: (result) => {
         const current = get().data;
         const next = mergeFeed(current, result);
-        // Snapshots may reference stories that a merge added or pruned, so drop them.
         const changed =
           next.queue.length !== current.queue.length ||
           Object.keys(next.stories).length !==
