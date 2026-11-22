@@ -53,11 +53,9 @@ export function StoryCard() {
   function hint(action: "skip" | "save", placement: string) {
     const active = armed === action;
     return {
-      // Faint while the drag would not trigger the action yet, solid once it would.
-      style: {
-        opacity: active ? 1 : Math.min(Math.abs(offset.x) / 80, 1) * 0.4,
-      },
-      className: `pointer-events-none absolute top-0 bottom-[62px] z-20 flex w-29 flex-col gap-2 px-3 py-7 text-white transition-opacity duration-150 [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9 [&>svg]:transition-transform [&>svg]:duration-150 ${active ? "[&>svg]:scale-125" : ""} ${placement}`,
+      // Fades in with the drag and reaches full colour exactly where releasing triggers the action.
+      style: { opacity: Math.min(Math.abs(offset.x) / 80, 1) },
+      className: `pointer-events-none absolute top-0 bottom-[62px] z-20 flex w-29 flex-col gap-2 px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9 [&>svg]:transition-transform [&>svg]:duration-150 ${active ? "[&>svg]:scale-125" : ""} ${placement}`,
     };
   }
   function announce(action: Action, title: string) {
