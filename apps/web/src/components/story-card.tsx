@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import {
   ArchiveBoxIcon,
   ArrowUpIcon,
@@ -13,11 +19,11 @@ import { Button } from "@/components/catalyst/button";
 import { Heading } from "@/components/catalyst/heading";
 import { Text, TextLink } from "@/components/catalyst/text";
 import { gestureAction } from "@/lib/gesture";
-import { haptic } from "@/lib/haptic";
+import { releaseHaptic, vibrate } from "@/lib/haptic";
 import { useReaderStore } from "@/stores/reader-provider";
 import { useFeedStatus } from "@/hooks/feed-sync";
 
-type Action = "skip" | "save" | "defer";
+type Action = "skip" | "save" | "defer" | "collect";
 export function StoryCard() {
   const data = useReaderStore((s) => s.data);
   const hydrated = useReaderStore((s) => s.hydrated);
@@ -48,9 +54,9 @@ export function StoryCard() {
   const armed = gestureAction(offset.x, offset.y);
   const horizontal = Math.abs(offset.x) > Math.abs(offset.y);
   useEffect(() => {
-    if (armed === "skip" || armed === "save") haptic();
+    if (armed === "skip" || armed === "collect") vibrate();
   }, [armed]);
-  function hint(action: "skip" | "save", placement: string) {
+  function hint(action: "skip" | "collect", placement: string) {
     const active = armed === action;
     return {
       // Fades in with the drag and reaches full colour exactly where releasing triggers the action.
@@ -66,44 +72,51 @@ export function StoryCard() {
           skip: "안 읽기로 선택했어요.",
           save: "저장했어요.",
           defer: "맨 뒤로 보류했어요.",
+          collect: "챙기고 넘겼어요.",
         }[action]
       } ${title}`,
     );
   }
   function act(action: Action, expectedId?: string) {
-    if (!choose(action, expectedId)) return;
+    if (action === "collect") {
+      // 챙기기 + next card: mark interest (never un-mark) and move on without saving.
+      if (expectedId && !isCurrent(expectedId)) return;
+      if (!liked) interest();
+      if (!choose("skip", expectedId)) return;
+    } else if (!choose(action, expectedId)) return;
     announce(action, data.stories[expectedId ?? data.queue[0]]?.title ?? "");
   }
-  useEffect(() => {
-    function key(e: KeyboardEvent) {
-      if (
-        e.target instanceof HTMLElement &&
-        e.target.closest("input, textarea, select, [contenteditable]")
-      )
-        return;
-      if (
-        e.altKey ||
-        e.shiftKey ||
-        (e.ctrlKey && e.key !== "z") ||
-        (e.metaKey && e.key !== "z")
-      )
-        return;
-      const action = (
-        { ArrowLeft: "skip", ArrowRight: "save", ArrowUp: "defer" } as const
-      )[e.key as "ArrowLeft"];
-      if (action && story) {
-        e.preventDefault();
-        choose(action);
-        announce(action, story.title);
-      } else if ((e.ctrlKey || e.metaKey) && e.key === "z" && canUndo) {
-        e.preventDefault();
-        undo();
-        setMessage("직전 선택을 되돌렸어요.");
-      }
+  // Effect event: always sees the latest story/undo state without re-subscribing.
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    if (
+      e.target instanceof HTMLElement &&
+      e.target.closest("input, textarea, select, [contenteditable]")
+    )
+      return;
+    if (
+      e.altKey ||
+      e.shiftKey ||
+      (e.ctrlKey && e.key !== "z") ||
+      (e.metaKey && e.key !== "z")
+    )
+      return;
+    const action = (
+      { ArrowLeft: "skip", ArrowRight: "collect", ArrowUp: "defer" } as const
+    )[e.key as "ArrowLeft"];
+    if (action && story) {
+      e.preventDefault();
+      act(action);
+    } else if ((e.ctrlKey || e.metaKey) && e.key === "z" && canUndo) {
+      e.preventDefault();
+      undo();
+      setMessage("직전 선택을 되돌렸어요.");
     }
+  });
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => onKey(e);
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [choose, undo, story, canUndo]);
+  }, []);
   function down(e: PointerEvent<HTMLElement>) {
     if ((e.pointerType === "mouse" && e.button !== 0) || !story) return;
     drag.current = { x: e.clientX, y: e.clientY, moved: false, id: story.id };
@@ -131,7 +144,10 @@ export function StoryCard() {
     }
     if (!cancel) {
       const action = gestureAction(e.clientX - start.x, e.clientY - start.y);
-      if (action) act(action, start.id);
+      if (action) {
+        releaseHaptic();
+        act(action, start.id);
+      }
     }
   }
   const empty = !hydrated
@@ -160,11 +176,11 @@ export function StoryCard() {
           )}
           {horizontal && offset.x > 0 && (
             <div
-              {...hint("save", "-right-6 items-start rounded-r-3xl bg-save")}
+              {...hint("collect", "-right-6 items-start rounded-r-3xl bg-save")}
               aria-hidden="true"
             >
               <ArchiveBoxIcon />
-              <span>저장</span>
+              <span>챙기기</span>
             </div>
           )}
           <article
