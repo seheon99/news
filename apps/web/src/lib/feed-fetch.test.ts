@@ -3,8 +3,12 @@ import dns from "node:dns/promises";
 import { EventEmitter } from "node:events";
 import http from "node:http";
 import { Readable } from "node:stream";
-import test, { type TestContext } from "node:test";
+import { afterEach, test, vi } from "vitest";
 import { downloadFeed } from "./feed-fetch.ts";
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 test("rejects credentials, nonstandard ports, localhost and private IP literals", async () => {
   for (const url of [
@@ -21,8 +25,8 @@ test("rejects credentials, nonstandard ports, localhost and private IP literals"
   }
 });
 
-test("rejects IPv4-compatible IPv6 literals before connecting", async (t) => {
-  t.mock.method(http, "request", (() => {
+test("rejects IPv4-compatible IPv6 literals before connecting", async () => {
+  vi.spyOn(http, "request").mockImplementation((() => {
     throw new Error("unexpected connection");
   }) as never);
   for (const url of ["http://[::2]/", "http://[::a00:1]/"]) {
@@ -30,13 +34,11 @@ test("rejects IPv4-compatible IPv6 literals before connecting", async (t) => {
   }
 });
 
-test("rejects IPv4-compatible IPv6 DNS answers before connecting", async (t) => {
-  t.mock.method(
-    dns,
-    "lookup",
+test("rejects IPv4-compatible IPv6 DNS answers before connecting", async () => {
+  vi.spyOn(dns, "lookup").mockImplementation(
     async () => [{ address: "::a00:1", family: 6 }] as never,
   );
-  t.mock.method(http, "request", (() => {
+  vi.spyOn(http, "request").mockImplementation((() => {
     throw new Error("unexpected connection");
   }) as never);
   await assert.rejects(downloadFeed("http://feed.example/"), {
@@ -44,13 +46,11 @@ test("rejects IPv4-compatible IPv6 DNS answers before connecting", async (t) => 
   });
 });
 
-test("rejects redirects to IPv4-compatible IPv6 literals", async (t) => {
-  t.mock.method(
-    dns,
-    "lookup",
+test("rejects redirects to IPv4-compatible IPv6 literals", async () => {
+  vi.spyOn(dns, "lookup").mockImplementation(
     async () => [{ address: "8.8.8.8", family: 4 }] as never,
   );
-  t.mock.method(http, "request", ((
+  vi.spyOn(http, "request").mockImplementation(((
     _url: unknown,
     _options: unknown,
     callback: (
@@ -74,10 +74,8 @@ test("rejects redirects to IPv4-compatible IPv6 literals", async (t) => {
   });
 });
 
-test("rejects mixed public and private DNS results before connecting", async (t) => {
-  t.mock.method(
-    dns,
-    "lookup",
+test("rejects mixed public and private DNS results before connecting", async () => {
+  vi.spyOn(dns, "lookup").mockImplementation(
     async () =>
       [
         { address: "8.8.8.8", family: 4 },
@@ -89,11 +87,13 @@ test("rejects mixed public and private DNS results before connecting", async (t)
   });
 });
 
-test("times out even if DNS never responds", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout"] });
-  t.mock.method(dns, "lookup", (() => new Promise(() => {})) as never);
+test("times out even if DNS never responds", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout"] });
+  vi.spyOn(dns, "lookup").mockImplementation(
+    (() => new Promise(() => {})) as never,
+  );
   const pending = downloadFeed("http://feed.example/");
-  t.mock.timers.tick(10_000);
+  vi.advanceTimersByTime(10_000);
   await assert.rejects(pending, { code: "TIMEOUT" });
 });
 
@@ -111,14 +111,14 @@ type UpstreamResponse = {
   chunks?: Buffer[];
 };
 
-function mockUpstream(t: TestContext, responses: UpstreamResponse[]) {
+function mockUpstream(responses: UpstreamResponse[]) {
   const lookups: string[] = [];
-  t.mock.method(dns, "lookup", async (hostname: string) => {
+  vi.spyOn(dns, "lookup").mockImplementation(async (hostname: string) => {
     lookups.push(hostname);
     return [{ address: "8.8.8.8", family: 4 }] as never;
   });
   const requests: string[] = [];
-  t.mock.method(http, "request", ((
+  vi.spyOn(http, "request").mockImplementation(((
     url: URL,
     options: http.RequestOptions,
     callback: (res: Readable & UpstreamResponse) => void,
@@ -148,8 +148,8 @@ function mockUpstream(t: TestContext, responses: UpstreamResponse[]) {
   return { requests, lookups };
 }
 
-test("follows three relative redirects, validates each host, and returns the final URL", async (t) => {
-  const upstream = mockUpstream(t, [
+test("follows three relative redirects, validates each host, and returns the final URL", async () => {
+  const upstream = mockUpstream([
     { status: 301, headers: { location: "/new/feed" } },
     { status: 302, headers: { location: "http://cdn.example/path/feed" } },
     { status: 307, headers: { location: "../final#fragment" } },
@@ -173,9 +173,8 @@ test("follows three relative redirects, validates each host, and returns the fin
   ]);
 });
 
-test("rejects a fourth redirect without making a fifth request", async (t) => {
+test("rejects a fourth redirect without making a fifth request", async () => {
   const upstream = mockUpstream(
-    t,
     Array.from({ length: 4 }, () => ({
       status: 302,
       headers: { location: "/again" },
@@ -201,20 +200,18 @@ for (const [name, response, code] of [
   ],
   ["HTTP failure", { status: 503 }, "HTTP_ERROR"],
 ] as const) {
-  test(`rejects ${name}`, async (t) => {
-    const upstream = mockUpstream(t, [response]);
+  test(`rejects ${name}`, async () => {
+    const upstream = mockUpstream([response]);
     await assert.rejects(downloadFeed("http://feed.example/"), { code });
     assert.equal(upstream.requests.length, 1);
   });
 }
 
-test("rejects a redirect whose new hostname resolves to a private address", async (t) => {
-  const upstream = mockUpstream(t, [
+test("rejects a redirect whose new hostname resolves to a private address", async () => {
+  const upstream = mockUpstream([
     { status: 302, headers: { location: "http://internal.example/feed" } },
   ]);
-  const lookup = t.mock.method(
-    dns,
-    "lookup",
+  const lookup = vi.spyOn(dns, "lookup").mockImplementation(
     async (hostname: string) =>
       [
         {
@@ -227,15 +224,15 @@ test("rejects a redirect whose new hostname resolves to a private address", asyn
     code: "INVALID_URL",
   });
   assert.deepEqual(
-    lookup.mock.calls.map(({ arguments: args }) => args[0]),
+    lookup.mock.calls.map((args) => args[0]),
     ["feed.example", "internal.example"],
   );
   assert.deepEqual(upstream.requests, ["http://feed.example/"]);
 });
 
-test("accepts exactly 2 MiB across chunks and rejects the next byte", async (t) => {
+test("accepts exactly 2 MiB across chunks and rejects the next byte", async () => {
   const chunk = Buffer.alloc(1024 * 1024, "a");
-  mockUpstream(t, [
+  mockUpstream([
     { chunks: [chunk, chunk] },
     { chunks: [chunk, chunk, Buffer.from("b")] },
   ]);
@@ -303,8 +300,8 @@ for (const fixture of [
     expected: xml("UTF-16"),
   },
 ]) {
-  test(`decodes ${fixture.name} without changing the XML`, async (t) => {
-    mockUpstream(t, [
+  test(`decodes ${fixture.name} without changing the XML`, async () => {
+    mockUpstream([
       {
         chunks: [fixture.body.subarray(0, 7), fixture.body.subarray(7)],
         headers: fixture.contentType
@@ -336,8 +333,8 @@ for (const fixture of [
   },
   { name: "truncated UTF-16 code unit", body: Buffer.from([0xff, 0xfe, 0x3c]) },
 ]) {
-  test(`rejects ${fixture.name} instead of returning replacement characters`, async (t) => {
-    mockUpstream(t, [
+  test(`rejects ${fixture.name} instead of returning replacement characters`, async () => {
+    mockUpstream([
       {
         chunks: [fixture.body],
         headers: fixture.contentType
@@ -351,20 +348,18 @@ for (const fixture of [
   });
 }
 
-test("maps DNS and connection failures to safe network errors", async (t) => {
-  t.mock.method(dns, "lookup", async () => {
+test("maps DNS and connection failures to safe network errors", async () => {
+  vi.spyOn(dns, "lookup").mockImplementation(async () => {
     throw Error("private DNS details");
   });
   await assert.rejects(downloadFeed("http://feed.example/"), {
     code: "NETWORK_ERROR",
     message: "피드에 연결하지 못했습니다.",
   });
-  t.mock.method(
-    dns,
-    "lookup",
+  vi.spyOn(dns, "lookup").mockImplementation(
     async () => [{ address: "8.8.8.8", family: 4 }] as never,
   );
-  t.mock.method(http, "request", (() => {
+  vi.spyOn(http, "request").mockImplementation((() => {
     const request = new EventEmitter() as EventEmitter & { end: () => void };
     request.end = () =>
       request.emit("error", Error("connection reset with private details"));
@@ -376,11 +371,9 @@ test("maps DNS and connection failures to safe network errors", async (t) => {
   });
 });
 
-test("aborts a response that never ends after the overall request deadline", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout"] });
-  t.mock.method(
-    dns,
-    "lookup",
+test("aborts a response that never ends after the overall request deadline", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout"] });
+  vi.spyOn(dns, "lookup").mockImplementation(
     async () => [{ address: "8.8.8.8", family: 4 }] as never,
   );
   let signal: AbortSignal | undefined;
@@ -388,7 +381,7 @@ test("aborts a response that never ends after the overall request deadline", asy
   const ready = new Promise<void>((resolve) => {
     connected = resolve;
   });
-  t.mock.method(http, "request", ((
+  vi.spyOn(http, "request").mockImplementation(((
     _url: URL,
     options: http.RequestOptions,
     callback: (res: Readable) => void,
@@ -414,9 +407,9 @@ test("aborts a response that never ends after the overall request deadline", asy
   }) as never);
   const pending = downloadFeed("http://feed.example/");
   await ready;
-  t.mock.timers.tick(9_999);
+  vi.advanceTimersByTime(9_999);
   assert.equal(signal?.aborted, false);
-  t.mock.timers.tick(1);
+  vi.advanceTimersByTime(1);
   await assert.rejects(pending, { code: "TIMEOUT" });
   assert.equal(signal?.aborted, true);
 });

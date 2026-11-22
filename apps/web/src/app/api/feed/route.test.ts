@@ -3,8 +3,12 @@ import dns from "node:dns/promises";
 import { EventEmitter } from "node:events";
 import http from "node:http";
 import { Readable } from "node:stream";
-import test, { type TestContext } from "node:test";
+import { afterEach, test, vi } from "vitest";
 import { POST } from "./route.ts";
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 test("returns safe errors and no-store for invalid or oversized input", async () => {
   for (const body of [
@@ -27,11 +31,9 @@ test("returns safe errors and no-store for invalid or oversized input", async ()
   }
 });
 
-test("bounds concurrent upstream fetches", async (t) => {
+test("bounds concurrent upstream fetches", async () => {
   const releases: Array<(value: never) => void> = [];
-  t.mock.method(
-    dns,
-    "lookup",
+  vi.spyOn(dns, "lookup").mockImplementation(
     (() =>
       new Promise((resolve) => {
         releases.push(resolve);
@@ -55,9 +57,7 @@ test("bounds concurrent upstream fetches", async (t) => {
   assert.equal(response.status, 429);
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.equal((await response.json()).code, "BUSY");
-  t.mock.method(
-    dns,
-    "lookup",
+  vi.spyOn(dns, "lookup").mockImplementation(
     async () => [{ address: "127.0.0.1", family: 4 }] as never,
   );
   const retried = await POST(makeRequest());
@@ -66,20 +66,17 @@ test("bounds concurrent upstream fetches", async (t) => {
 });
 
 function mockResponses(
-  t: TestContext,
   responses: Array<{
     status?: number;
     headers?: Record<string, string>;
     body?: Buffer;
   }>,
 ) {
-  t.mock.method(
-    dns,
-    "lookup",
+  vi.spyOn(dns, "lookup").mockImplementation(
     async () => [{ address: "8.8.8.8", family: 4 }] as never,
   );
   const urls: string[] = [];
-  t.mock.method(http, "request", ((
+  vi.spyOn(http, "request").mockImplementation(((
     url: URL,
     _options: unknown,
     callback: (res: Readable) => void,
@@ -104,8 +101,8 @@ function mockResponses(
 const feedXml =
   '<rss version="2.0"><channel><title>Café</title><item><guid>story-1</guid><title><![CDATA[Hello <b>world</b>]]></title><link>story</link><description><![CDATA[<p>Résumé</p><script>secret()</script>]]></description><pubDate>Wed, 01 Jan 2025 00:00:00 GMT</pubDate></item><item><title>Unsafe</title><link>javascript:alert(1)</link></item></channel></rss>';
 
-test("POST downloads, decodes and parses a redirected feed while retaining subscription identity", async (t) => {
-  const urls = mockResponses(t, [
+test("POST downloads, decodes and parses a redirected feed while retaining subscription identity", async () => {
+  const urls = mockResponses([
     { status: 302, headers: { location: "http://cdn.example/path/feed" } },
     {
       body: Buffer.from(feedXml, "latin1"),
@@ -175,8 +172,8 @@ for (const fixture of [
     message: "지원하지 않는 피드 문자 인코딩입니다.",
   },
 ]) {
-  test(`POST returns a safe no-store 502 for ${fixture.name}`, async (t) => {
-    mockResponses(t, [fixture.upstream]);
+  test(`POST returns a safe no-store 502 for ${fixture.name}`, async () => {
+    mockResponses([fixture.upstream]);
     const response = await POST(
       new Request("http://localhost/api/feed", {
         method: "POST",
@@ -192,8 +189,8 @@ for (const fixture of [
   });
 }
 
-test("POST accepts exactly 4096 streamed bytes and cancels a body at 4097 before any connection", async (t) => {
-  const urls = mockResponses(t, [
+test("POST accepts exactly 4096 streamed bytes and cancels a body at 4097 before any connection", async () => {
+  const urls = mockResponses([
     {
       body: Buffer.from(feedXml, "latin1"),
       headers: { "content-type": "application/rss+xml; charset=ISO-8859-1" },
@@ -246,13 +243,13 @@ test("POST accepts exactly 4096 streamed bytes and cancels a body at 4097 before
   assert.deepEqual(urls, ["http://feed.example/"]);
 });
 
-test("POST reports a DNS deadline as a safe no-store 504", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout"] });
+test("POST reports a DNS deadline as a safe no-store 504", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout"] });
   let resolving!: () => void;
   const ready = new Promise<void>((resolve) => {
     resolving = resolve;
   });
-  t.mock.method(dns, "lookup", (() => {
+  vi.spyOn(dns, "lookup").mockImplementation((() => {
     resolving();
     return new Promise(() => {});
   }) as never);
@@ -263,7 +260,7 @@ test("POST reports a DNS deadline as a safe no-store 504", async (t) => {
     }),
   );
   await ready;
-  t.mock.timers.tick(10_000);
+  vi.advanceTimersByTime(10_000);
   const response = await pending;
   assert.equal(response.status, 504);
   assert.equal(response.headers.get("cache-control"), "no-store");

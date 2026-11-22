@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test } from "vitest";
 import { gestureAction } from "./gesture.ts";
 
 test("gestures require 80 pixels on the dominant axis and ignore downward motion", () => {
