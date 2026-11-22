@@ -1,7 +1,7 @@
-import { createInitialState } from "@/lib/reader/create-initial-state";
-import { mergeFeed } from "@/lib/reader/merge-feed";
+import { createInitialState } from "@/lib/reader/state/create-initial-state";
+import { mergeFeed } from "@/lib/reader/state/merge-feed";
+import { validateReaderState } from "@/lib/reader/storage/validate-reader-state";
 import type { FeedResult } from "@/lib/reader/types";
-import { validateReaderState } from "@/lib/reader/validate-reader-state";
 
 let active = 0;
 const waiting: (() => void)[] = [];

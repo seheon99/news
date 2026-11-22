@@ -2,11 +2,11 @@ import dns from "node:dns/promises";
 import http from "node:http";
 import https from "node:https";
 import { isIP } from "node:net";
-import { createFeedError } from "./create-feed-error";
-import { decodeFeed } from "./decode-feed";
-import { FeedError } from "./feed-error";
-import { isPublic } from "./is-public";
-import { normalizeFeedUrl } from "./normalize-feed-url";
+import { createFeedError } from "../errors/create-feed-error";
+import { FeedError } from "../errors/feed-error";
+import { decodeFeed } from "../parse/decode-feed";
+import { isPublic } from "../url/is-public";
+import { normalizeFeedUrl } from "../url/normalize-feed-url";
 
 export async function downloadFeed(
   input: string,

@@ -1,5 +1,5 @@
 import { keyBy, orderBy, uniqBy } from "es-toolkit";
-import type { FeedResult, ReaderState } from "./types";
+import type { FeedResult, ReaderState } from "../types";
 
 export const MAX_ARCHIVED_STORIES = 500;
 

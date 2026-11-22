@@ -2,7 +2,7 @@
 import { type ReactNode, useEffect } from "react";
 import { SWRConfig } from "swr";
 import { SourceSync } from "@/components/source-sync";
-import { parseStoredState } from "@/lib/reader/parse-stored-state";
+import { parseStoredState } from "@/lib/reader/storage/parse-stored-state";
 import { STORAGE_KEY } from "@/stores/reader-store";
 import { readerStore, useReaderStore } from "@/stores/use-reader-store";
 

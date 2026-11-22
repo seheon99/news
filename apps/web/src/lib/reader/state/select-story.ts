@@ -1,4 +1,4 @@
-import type { Choice, ReaderState } from "./types";
+import type { Choice, ReaderState } from "../types";
 
 export function selectStory(
   state: ReaderState,

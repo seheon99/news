@@ -6,7 +6,7 @@ import { Button } from "@/components/base/button";
 import { Heading } from "@/components/base/heading";
 import { Link } from "@/components/base/link";
 import { Text } from "@/components/base/text";
-import { libraryGroups } from "@/lib/reader/library-groups";
+import { libraryGroups } from "@/lib/reader/state/library-groups";
 import { useReaderStore } from "@/stores/use-reader-store";
 
 const tabs = [

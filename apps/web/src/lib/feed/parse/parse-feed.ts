@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import Parser from "rss-parser";
 import type { FeedResult, Story } from "@/lib/reader/types";
-import { FeedError } from "./feed-error";
+import { FeedError } from "../errors/feed-error";
 import { htmlToText } from "./html-to-text";
 
 export async function parseFeed(

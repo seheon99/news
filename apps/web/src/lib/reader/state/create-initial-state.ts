@@ -1,4 +1,4 @@
-import type { ReaderState } from "./types";
+import type { ReaderState } from "../types";
 
 export function createInitialState(): ReaderState {
   return {

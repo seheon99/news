@@ -1,6 +1,6 @@
 "use client";
 import useSWR from "swr";
-import { fetchFeed } from "@/lib/feed/fetch-feed";
+import { fetchFeed } from "@/lib/feed/fetch/fetch-feed";
 import { useReaderStore } from "@/stores/use-reader-store";
 
 export function useFeed(sourceUrl: string) {

@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Text } from "@/components/base/text";
 import { LibrarySection } from "@/components/library-section";
-import { libraryGroups } from "@/lib/reader/library-groups";
+import { libraryGroups } from "@/lib/reader/state/library-groups";
 import { useReaderStore } from "@/stores/use-reader-store";
 
 export default function Library() {

@@ -1,7 +1,7 @@
-import { downloadFeed } from "@/lib/feed/download-feed";
-import { FeedError } from "@/lib/feed/feed-error";
-import { normalizeFeedUrl } from "@/lib/feed/normalize-feed-url";
-import { parseFeed } from "@/lib/feed/parse-feed";
+import { FeedError } from "@/lib/feed/errors/feed-error";
+import { downloadFeed } from "@/lib/feed/fetch/download-feed";
+import { parseFeed } from "@/lib/feed/parse/parse-feed";
+import { normalizeFeedUrl } from "@/lib/feed/url/normalize-feed-url";
 
 export const runtime = "nodejs";
 let activeFetches = 0;

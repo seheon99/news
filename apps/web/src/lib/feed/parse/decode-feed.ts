@@ -1,4 +1,4 @@
-import { createFeedError } from "./create-feed-error";
+import { createFeedError } from "../errors/create-feed-error";
 
 export function decodeFeed(body: Buffer, contentType?: string): string {
   const bytes = body.subarray(0, 512);

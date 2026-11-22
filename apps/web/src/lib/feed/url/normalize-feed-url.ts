@@ -1,5 +1,5 @@
 import ipaddr from "ipaddr.js";
-import { createFeedError } from "./create-feed-error";
+import { createFeedError } from "../errors/create-feed-error";
 import { isPublic } from "./is-public";
 
 export function normalizeFeedUrl(value: string): string {

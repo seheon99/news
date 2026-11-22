@@ -1,4 +1,4 @@
-import type { ReaderState } from "./types";
+import type { ReaderState } from "../types";
 import { validateReaderState } from "./validate-reader-state";
 
 export function parseStoredState(value: string): ReaderState {

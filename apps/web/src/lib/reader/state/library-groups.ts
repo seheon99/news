@@ -1,4 +1,4 @@
-import type { LibraryEntry, ReaderState } from "./types";
+import type { LibraryEntry, ReaderState } from "../types";
 
 export function libraryGroups(state: ReaderState) {
   const entry = (id: string, at: string | null): LibraryEntry[] =>

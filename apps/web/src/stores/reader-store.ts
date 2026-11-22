@@ -1,9 +1,9 @@
 import { createStore } from "zustand/vanilla";
-import { createInitialState } from "@/lib/reader/create-initial-state";
-import { mergeFeed } from "@/lib/reader/merge-feed";
-import { parseStoredState } from "@/lib/reader/parse-stored-state";
-import { selectStory } from "@/lib/reader/select-story";
-import { serializeState } from "@/lib/reader/serialize-state";
+import { createInitialState } from "@/lib/reader/state/create-initial-state";
+import { mergeFeed } from "@/lib/reader/state/merge-feed";
+import { selectStory } from "@/lib/reader/state/select-story";
+import { parseStoredState } from "@/lib/reader/storage/parse-stored-state";
+import { serializeState } from "@/lib/reader/storage/serialize-state";
 import type { Choice, FeedResult, ReaderState } from "@/lib/reader/types";
 
 export const STORAGE_KEY = "joobjoob-reader-v1";

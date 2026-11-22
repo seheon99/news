@@ -7,8 +7,8 @@ import { Subheading } from "@/components/base/heading";
 import { Input } from "@/components/base/input";
 import { Text } from "@/components/base/text";
 import { useFeedMutate } from "@/hooks/use-feed-mutate";
-import { fetchFeed } from "@/lib/feed/fetch-feed";
-import { normalizeFeedUrl } from "@/lib/feed/normalize-feed-url";
+import { fetchFeed } from "@/lib/feed/fetch/fetch-feed";
+import { normalizeFeedUrl } from "@/lib/feed/url/normalize-feed-url";
 import { useReaderStore } from "@/stores/use-reader-store";
 
 export default function Subscriptions() {

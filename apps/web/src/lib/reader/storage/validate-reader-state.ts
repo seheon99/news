@@ -1,9 +1,9 @@
-import { isIdList } from "./is-id-list";
-import { isRecord } from "./is-record";
-import { isSource } from "./is-source";
-import { isStory } from "./is-story";
-import { isTimestampRecord } from "./is-timestamp-record";
-import type { ReaderState } from "./types";
+import { isIdList } from "../guards/is-id-list";
+import { isRecord } from "../guards/is-record";
+import { isSource } from "../guards/is-source";
+import { isStory } from "../guards/is-story";
+import { isTimestampRecord } from "../guards/is-timestamp-record";
+import type { ReaderState } from "../types";
 
 export function validateReaderState(value: unknown): value is ReaderState {
   if (
