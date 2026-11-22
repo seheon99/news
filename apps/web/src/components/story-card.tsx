@@ -13,6 +13,7 @@ import { Button } from "@/components/catalyst/button";
 import { Heading } from "@/components/catalyst/heading";
 import { Text, TextLink } from "@/components/catalyst/text";
 import { gestureAction } from "@/lib/gesture";
+import { haptic } from "@/lib/haptic";
 import { useReaderStore } from "@/stores/reader-provider";
 import { useFeedStatus } from "@/hooks/feed-sync";
 
@@ -43,6 +44,22 @@ export function StoryCard() {
     (s) => !statuses[s.url] || statuses[s.url].loading,
   );
   const failed = data.sources.filter((s) => statuses[s.url]?.error).length;
+  // Same rule as on release, so the panel and the vibration match what letting go will do.
+  const armed = gestureAction(offset.x, offset.y);
+  const horizontal = Math.abs(offset.x) > Math.abs(offset.y);
+  useEffect(() => {
+    if (armed === "skip" || armed === "save") haptic();
+  }, [armed]);
+  function hint(action: "skip" | "save", placement: string) {
+    const active = armed === action;
+    return {
+      // Faint while the drag would not trigger the action yet, solid once it would.
+      style: {
+        opacity: active ? 1 : Math.min(Math.abs(offset.x) / 80, 1) * 0.4,
+      },
+      className: `pointer-events-none absolute top-0 bottom-[62px] z-20 flex w-29 flex-col gap-2 px-3 py-7 text-white transition-opacity duration-150 [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9 [&>svg]:transition-transform [&>svg]:duration-150 ${active ? "[&>svg]:scale-125" : ""} ${placement}`,
+    };
+  }
   function announce(action: Action, title: string) {
     setAnnouncement((id) => id + 1);
     setMessage(
@@ -134,18 +151,18 @@ export function StoryCard() {
     <div className="relative mx-auto flex min-h-0 w-full max-w-[470px] flex-1 flex-col overflow-x-clip">
       {story ? (
         <>
-          {offset.x < -24 && (
+          {horizontal && offset.x < 0 && (
             <div
-              className="pointer-events-none absolute top-0 bottom-[62px] -left-6 z-20 flex w-29 flex-col items-end gap-2 rounded-l-3xl bg-skip px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9"
+              {...hint("skip", "-left-6 items-end rounded-l-3xl bg-skip")}
               aria-hidden="true"
             >
               <TrashIcon />
               <span>안 읽기</span>
             </div>
           )}
-          {offset.x > 24 && (
+          {horizontal && offset.x > 0 && (
             <div
-              className="pointer-events-none absolute top-0 -right-6 bottom-[62px] z-20 flex w-29 flex-col items-start gap-2 rounded-r-3xl bg-save px-3 py-7 text-white [&>span]:text-lg [&>span]:font-bold [&>svg]:size-9"
+              {...hint("save", "-right-6 items-start rounded-r-3xl bg-save")}
               aria-hidden="true"
             >
               <ArchiveBoxIcon />
