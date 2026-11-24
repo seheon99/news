@@ -1,0 +1,36 @@
+name: Release web
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*.*.*"]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/release-web.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/release-web.yml"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: seheon99/build-and-deploy@v1
+        with:
+          service-name: joobjoob-web
+          registry: ghcr.io/${{ github.repository }}
+          context: apps/web
+          dry-run: ${{ github.event_name == 'pull_request' }}
+          skip-checkout: true
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-user: ${{ secrets.SSH_USER }}
+          ssh-key: ${{ secrets.SSH_KEY }}
+          ssh-port: ${{ secrets.SSH_PORT || 22 }}

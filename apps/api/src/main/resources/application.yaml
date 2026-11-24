@@ -9,9 +9,6 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
-  flyway:
-    sql-migration-prefix: ""
-    sql-migration-separator: "_"
   modulith:
     events:
       republish-outstanding-events-on-restart: true
