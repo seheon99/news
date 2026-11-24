@@ -19,7 +19,7 @@ jobs:
 
       - uses: seheon99/build-and-deploy@v1
         with:
-          service-name: news
+          service-name: joobjoob-web
           registry: ghcr.io/${{ github.repository }}
           context: apps/web
           dry-run: ${{ github.event_name == 'pull_request' }}
