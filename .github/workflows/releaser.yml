@@ -1,0 +1,30 @@
+name: Releaser
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: seheon99/build-and-deploy@v1
+        with:
+          service-name: news
+          registry: ghcr.io/${{ github.repository }}
+          context: apps/web
+          dry-run: ${{ github.event_name == 'pull_request' }}
+          skip-checkout: true
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-user: ${{ secrets.SSH_USER }}
+          ssh-key: ${{ secrets.SSH_KEY }}
+          ssh-port: ${{ secrets.SSH_PORT || 22 }}
