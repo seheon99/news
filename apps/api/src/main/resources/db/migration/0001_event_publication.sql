@@ -1,4 +1,3 @@
--- Spring Modulith event publication registry (spring-modulith-events-jpa).
 CREATE TABLE event_publication
 (
     id                     UUID                     NOT NULL PRIMARY KEY,

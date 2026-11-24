@@ -11,7 +11,7 @@ joobjoob의 백엔드 애플리케이션. 모노레포에서 `apps/web`과 별�
 | 모듈 구조 | Spring Modulith 2.2.0 | 모듈러 모놀리스, 이벤트 발행 레지스트리(JPA) |
 | 데이터베이스 | PostgreSQL 18 | |
 | 영속성 | Spring Data JPA (Hibernate) | `ddl-auto: validate` — 스키마는 Flyway가 소유 |
-| 마이그레이션 | Flyway | `src/main/resources/db/migration` |
+| 마이그레이션 | Flyway | `src/main/resources/db/migration`, `0001_<설명>.sql` 형식 |
 | 빌드 도구 | Gradle 9.9 (Kotlin DSL, wrapper 포함) | |
 | 테스트 | JUnit 5, Testcontainers | 테스트마다 실제 PostgreSQL 컨테이너 사용 |
 
@@ -41,16 +41,16 @@ src/main/java/kr/seheon/joobjoob/
   | `DATABASE_PASSWORD` | (secret) |
 
   그 밖의 설정도 Spring Boot 규칙대로 환경변수로 덮어쓸 수 있다 (예: `SERVER_PORT=8081`).
-- **로컬**: `compose.yaml`의 PostgreSQL을 Spring Boot docker-compose 지원이 자동으로 띄우고 연결한다. 환경변수 설정이 필요 없다. 여기 적힌 계정은 로컬 전용이다.
-- **테스트**: Testcontainers가 PostgreSQL을 띄우고 `@ServiceConnection`으로 연결한다.
-- **배포**: `bootJar`에는 docker-compose 지원이 포함되지 않으므로 위 환경변수가 반드시 필요하다.
+- **로컬·테스트**: Testcontainers가 PostgreSQL을 띄우고 `@ServiceConnection`으로 연결한다. 환경변수 설정이 필요 없다.
+- **배포**: 위 환경변수가 반드시 필요하다. 없으면 시작 시 실패한다.
 
 ## 로컬 실행
 
 필요: JDK 25, Docker (Compose v2).
 
 ```bash
-./gradlew bootRun     # PostgreSQL 컨테이너를 띄우고 마이그레이션 후 :8080에서 실행
+./gradlew bootTestRun # Testcontainers로 PostgreSQL을 띄우고 마이그레이션 후 :8080에서 실행
+./gradlew bootRun     # DATABASE_* 환경변수로 지정한 DB에 연결
 ./gradlew test        # 전체 테스트 (Docker 필요)
 ./gradlew bootJar     # build/libs/api-0.0.1-SNAPSHOT.jar
 ```
@@ -65,5 +65,18 @@ curl localhost:8080/actuator/health/readiness
 
 ## DB 마이그레이션
 
-`src/main/resources/db/migration/V<번호>__<설명>.sql` 형식으로 추가한다. 애플리케이션 시작 시 Flyway가 적용하고,
+`src/main/resources/db/migration/<4자리 번호>_<설명>.sql` 형식으로 추가한다 (예: `0002_create_feed.sql`).
+Flyway 기본 규칙(`V1__...`) 대신 `spring.flyway.sql-migration-prefix: ""`, `sql-migration-separator: "_"`로 설정했다. 애플리케이션 시작 시 Flyway가 적용하고,
 Hibernate가 엔티티와 스키마가 일치하는지 검증한다. 이미 적용된 마이그레이션 파일은 수정하지 않는다.
+
+## 배포
+
+`.github/workflows/releaser.yml`의 `release-api` job이 담당한다.
+
+- PR: `./gradlew build`(테스트 포함) 후 Docker 이미지를 빌드만 한다 (dry-run).
+- `main` push / `v*.*.*` 태그: 테스트 후 `ghcr.io/seheon99/joobjoob-api` 이미지를 push·서명하고,
+  SSH로 서버의 `JOOBJOOB_API_IMAGE_DIGEST`를 갱신해 `joobjoob-api` compose 서비스를 재시작한다.
+
+```bash
+docker build -t joobjoob-api apps/api
+```
