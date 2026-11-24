@@ -1,0 +1,14 @@
+node_modules
+.next
+.vitest
+.superpowers
+.yarn/install-state.gz
+.git
+.gitignore
+.DS_Store
+.env
+.env.*
+*.tsbuildinfo
+npm-debug.log
+yarn-debug.log
+yarn-error.log

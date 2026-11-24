@@ -63,7 +63,12 @@ export function StoryCard() {
     )
       return;
     const action = (
-      { ArrowLeft: "skip", ArrowRight: "store", ArrowUp: "defer" } as const
+      {
+        ArrowLeft: "skip",
+        ArrowRight: "store",
+        ArrowUp: "defer",
+        ArrowDown: "save",
+      } as const
     )[e.key as "ArrowLeft"];
     if (action && story) {
       e.preventDefault();
@@ -81,7 +86,7 @@ export function StoryCard() {
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
       {story ? (
-        <SwipeCard story={story} onChoose={act} />
+        <SwipeCard key={story.id} story={story} onChoose={act} />
       ) : (
         <EmptyState
           hydrated={hydrated}

@@ -1,5 +1,10 @@
 "use client";
-import { ArchiveBoxIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ArchiveBoxIcon,
+  ArrowUpIcon,
+  BookmarkIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { gestureAction, SWIPE_TRIGGER } from "@/lib/gesture";
 import { vibrate } from "@/lib/haptic";
@@ -8,6 +13,7 @@ import { useReaderStore } from "@/stores/use-reader-store";
 import { SwipeHint } from "./swipe-hint";
 
 const DRAG_START = 10;
+const FLY_MS = 200;
 
 type Gesture = NonNullable<ReturnType<typeof gestureAction>>;
 
@@ -27,17 +33,19 @@ export function SwipeCard({
     id: string;
   } | null>(null);
   const suppress = useRef(false);
+  const [leaving, setLeaving] = useState(false);
   const armed = gestureAction(offset.x, offset.y);
   const horizontal = Math.abs(offset.x) > Math.abs(offset.y);
   useEffect(() => {
     if (armed === "skip" || armed === "store") vibrate();
   }, [armed]);
-  const reveal = horizontal
-    ? Math.min(Math.abs(offset.x) / SWIPE_TRIGGER, 1)
-    : 0;
+  const reveal = Math.min(
+    Math.abs(horizontal ? offset.x : offset.y) / SWIPE_TRIGGER,
+    1,
+  );
   const settling = !offset.x && !offset.y;
   function down(e: PointerEvent<HTMLElement>) {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (leaving || (e.pointerType === "mouse" && e.button !== 0)) return;
     drag.current = { x: e.clientX, y: e.clientY, moved: false, id: story.id };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
@@ -54,20 +62,27 @@ export function SwipeCard({
     const start = drag.current;
     if (!start) return;
     drag.current = null;
-    setOffset({ x: 0, y: 0 });
     if (start.moved || cancel || !isCurrent(start.id)) {
       suppress.current = true;
       setTimeout(() => {
         suppress.current = false;
       }, 100);
     }
-    if (!cancel) {
-      const action = gestureAction(e.clientX - start.x, e.clientY - start.y);
-      if (action) onChoose(action, start.id);
-    }
+    const x = e.clientX - start.x,
+      y = e.clientY - start.y;
+    const action = cancel ? null : gestureAction(x, y);
+    if (!action) return setOffset({ x: 0, y: 0 });
+    const k = (Math.max(innerWidth, innerHeight) * 1.2) / Math.hypot(x, y);
+    setLeaving(true);
+    setOffset({ x: x * k, y: y * k });
+    setTimeout(() => {
+      onChoose(action, start.id);
+      setLeaving(false);
+      setOffset({ x: 0, y: 0 });
+    }, FLY_MS);
   }
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
+    <div className="relative flex min-h-0 flex-1 flex-col rounded-3xl border border-line">
       <SwipeHint
         icon={<TrashIcon />}
         label="버리기"
@@ -84,6 +99,22 @@ export function SwipeCard({
         armed={armed === "store"}
         settling={settling}
       />
+      <SwipeHint
+        icon={<ArrowUpIcon />}
+        label="보류하기"
+        className="items-end! justify-center pb-10 bg-yellow-400"
+        opacity={!horizontal && offset.y < 0 ? reveal : 0}
+        armed={armed === "defer"}
+        settling={settling}
+      />
+      <SwipeHint
+        icon={<BookmarkIcon />}
+        label="북마크"
+        className="items-start! justify-center pt-10 bg-secondary"
+        opacity={!horizontal && offset.y > 0 ? reveal : 0}
+        armed={armed === "save"}
+        settling={settling}
+      />
       <article
         onPointerDown={down}
         onPointerMove={move}
@@ -92,10 +123,12 @@ export function SwipeCard({
         style={{
           transform: `translate(${offset.x}px, ${offset.y}px) rotate(${offset.x / 20}deg)`,
         }}
-        className={`relative z-10 flex flex-1 cursor-grab touch-none flex-col overflow-hidden rounded-[20px] border border-line bg-card select-none ${
-          offset.x || offset.y
-            ? ""
-            : "transition-transform duration-180 motion-reduce:transition-none"
+        className={`relative z-10 flex flex-1 cursor-grab touch-none flex-col overflow-hidden rounded-3xl border border-line bg-card select-none ${
+          leaving
+            ? "transition-transform duration-200 ease-in motion-reduce:transition-none"
+            : offset.x || offset.y
+              ? ""
+              : "transition-transform duration-180 motion-reduce:transition-none"
         }`}
         onClick={() => {
           if (!suppress.current)
@@ -117,7 +150,7 @@ export function SwipeCard({
               {story.title}
             </a>
           </h1>
-          <p className="text-md/[1.45] min-h-0 flex-1 overflow-hidden mask-b-from-70% font-medium wrap-anywhere text-secondary">
+          <p className="text-base/[1.45] min-h-0 flex-1 overflow-hidden mask-b-from-70% font-medium wrap-anywhere text-secondary">
             {story.description}
           </p>
           <div className="mt-auto flex flex-none items-baseline justify-between gap-3 pt-4 text-xs text-muted">

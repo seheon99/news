@@ -34,7 +34,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="mx-auto flex h-dvh w-full max-w-105 flex-col pb-[env(safe-area-inset-bottom)]">
       <header className="flex-none px-6 pt-5 pb-2 max-[420px]:px-5 max-[420px]:pt-3">
         <div className="flex w-full items-center justify-between">
-          <Heading className="text-[28px]/[1.45]! font-bold! tracking-[-0.04em] text-foreground!">
+          <Heading className="text-3xl/[1.45]! font-bold! tracking-[-0.04em] text-foreground!">
             {title}{" "}
             <span className="pl-1 align-[2px] text-xl font-medium text-foreground/60">
               {count}

@@ -54,7 +54,7 @@ export default function Subscriptions() {
     <section className="flex flex-col gap-3">
       <form onSubmit={register}>
         <Field>
-          <Label className="block px-1 pt-3 text-[13px]! font-bold! text-secondary!">
+          <Label className="block px-1 pt-3 text-sm! font-bold! text-secondary!">
             RSS 피드 추가
           </Label>
           <div className="mt-2 flex gap-2">
@@ -78,13 +78,13 @@ export default function Subscriptions() {
         </Field>
         <Text
           role="status"
-          className="pt-2 text-[13px]! text-muted! empty:hidden"
+          className="pt-2 text-sm! text-muted! empty:hidden"
         >
           {feedback}
         </Text>
       </form>
       <section className="flex flex-col gap-3">
-        <Subheading className="flex items-baseline justify-between px-1 pt-3 text-[13px]! font-bold! text-secondary!">
+        <Subheading className="flex items-baseline justify-between px-1 pt-3 text-sm! font-bold! text-secondary!">
           RSS <span>{data.sources.length}</span>
         </Subheading>
         {data.sources.length === 0 && (
@@ -93,7 +93,7 @@ export default function Subscriptions() {
           </Text>
         )}
         {data.sources.length > 0 && (
-          <ul className="divide-y divide-line overflow-hidden rounded-[20px] border border-line bg-card">
+          <ul className="divide-y divide-line overflow-hidden rounded-3xl border border-line bg-card">
             {data.sources.map((source) => {
               const status = statuses[source.url];
               const host = (() => {
