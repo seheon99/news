@@ -1,11 +1,21 @@
-name: Releaser
+name: Release web
 
 on:
   push:
     branches: ["main"]
     tags: ["v*.*.*"]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/release-web.yml"
   pull_request:
     branches: ["main"]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/release-web.yml"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && github.run_id || 'joobjoob-deploy' }}
+  cancel-in-progress: false
 
 jobs:
   release:
