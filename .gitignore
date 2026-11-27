@@ -1,0 +1,6 @@
+
+
+# Server-only deployment environment
+.env
+.env.*
+!.env.example

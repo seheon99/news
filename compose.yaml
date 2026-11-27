@@ -1,0 +1,58 @@
+name: joobjoob
+services:
+  joobjoob-web:
+    image: ghcr.io/seheon99/joobjoob@${JOOBJOOB_WEB_IMAGE_DIGEST}
+    restart: unless-stopped
+    networks:
+    - public-traefik-net
+  joobjoob-api:
+    image: ghcr.io/seheon99/joobjoob-api@${JOOBJOOB_API_IMAGE_DIGEST}
+    restart: unless-stopped
+    env_file:
+    - ./api/.env
+    depends_on:
+      joobjoob-database:
+        condition: service_healthy
+    networks:
+    - public-traefik-net
+    - private-joobjoob-net
+  joobjoob-database:
+    image: postgres:18
+    restart: unless-stopped
+    env_file:
+    - ./database/.env
+    volumes:
+    - joobjoob-database-data:/var/lib/postgresql
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+    - private-joobjoob-net
+  joobjoob-mail:
+    image: stalwartlabs/stalwart:v1
+    init: true
+    restart: unless-stopped
+    ports:
+    - '25:25'
+    - 192.168.0.42:8888:8080
+    volumes:
+    - joobjoob-mail-data:/var/lib/stalwart
+    - joobjoob-mail-etc:/etc/stalwart
+networks:
+  public-traefik-net:
+    external: true
+  private-joobjoob-net: null
+volumes:
+  joobjoob-database-data:
+    external: true
+    name: joobjoob_joobjoob-database-data
+  joobjoob-mail-data:
+    external: true
+    name: joobjoob_joobjoob-mail-data
+  joobjoob-mail-etc:
+    external: true
+    name: joobjoob_joobjoob-mail-etc
