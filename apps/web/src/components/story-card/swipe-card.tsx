@@ -19,11 +19,18 @@ type Gesture = NonNullable<ReturnType<typeof gestureAction>>;
 
 export function SwipeCard({
   story,
+  canDefer,
   onChoose,
 }: {
   story: Story;
+  canDefer: boolean;
   onChoose: (action: Gesture, id: string) => void;
 }) {
+  // Masking here keeps the last card from flying off and snapping back.
+  const gesture = (x: number, y: number) => {
+    const action = gestureAction(x, y);
+    return action === "defer" && !canDefer ? null : action;
+  };
   const isCurrent = useReaderStore((s) => s.isCurrent);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const drag = useRef<{
@@ -34,7 +41,7 @@ export function SwipeCard({
   } | null>(null);
   const suppress = useRef(false);
   const [leaving, setLeaving] = useState(false);
-  const armed = gestureAction(offset.x, offset.y);
+  const armed = gesture(offset.x, offset.y);
   const horizontal = Math.abs(offset.x) > Math.abs(offset.y);
   useEffect(() => {
     if (armed === "skip" || armed === "store") vibrate();
@@ -70,7 +77,7 @@ export function SwipeCard({
     }
     const x = e.clientX - start.x,
       y = e.clientY - start.y;
-    const action = cancel ? null : gestureAction(x, y);
+    const action = cancel ? null : gesture(x, y);
     if (!action) return setOffset({ x: 0, y: 0 });
     const k = (Math.max(innerWidth, innerHeight) * 1.2) / Math.hypot(x, y);
     setLeaving(true);
@@ -103,7 +110,7 @@ export function SwipeCard({
         icon={<ArrowUpIcon />}
         label="보류하기"
         className="items-end! justify-center pb-10 bg-yellow-400"
-        opacity={!horizontal && offset.y < 0 ? reveal : 0}
+        opacity={canDefer && !horizontal && offset.y < 0 ? reveal : 0}
         armed={armed === "defer"}
         settling={settling}
       />

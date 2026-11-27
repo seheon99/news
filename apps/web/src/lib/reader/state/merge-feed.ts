@@ -1,5 +1,6 @@
 import { keyBy, orderBy, uniqBy } from "es-toolkit";
 import type { FeedResult, ReaderState } from "../types";
+import { publishedTime } from "./published-time";
 
 export const MAX_ARCHIVED_STORIES = 500;
 
@@ -13,10 +14,7 @@ export function mergeFeed(state: ReaderState, result: FeedResult): ReaderState {
         !Object.hasOwn(state.saved, story.id) &&
         !skipped.has(story.id),
     ),
-    [
-      (story) =>
-        story.publishedAt === null ? -Infinity : Date.parse(story.publishedAt),
-    ],
+    [publishedTime],
     ["desc"],
   );
   const next: ReaderState = {

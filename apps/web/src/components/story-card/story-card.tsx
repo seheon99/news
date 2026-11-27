@@ -25,6 +25,7 @@ export function StoryCard() {
       })),
     );
   const canUndo = history.length > 0;
+  const canDefer = data.queue.length > 1;
   const [message, setMessage] = useState("");
   const [announcement, setAnnouncement] = useState(0);
   const story = data.stories[data.queue[0]];
@@ -86,7 +87,12 @@ export function StoryCard() {
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col">
       {story ? (
-        <SwipeCard key={story.id} story={story} onChoose={act} />
+        <SwipeCard
+          key={story.id}
+          story={story}
+          canDefer={canDefer}
+          onChoose={act}
+        />
       ) : (
         <EmptyState
           hydrated={hydrated}
@@ -99,6 +105,7 @@ export function StoryCard() {
       <StoryActions
         hasStory={!!story}
         canUndo={canUndo}
+        canDefer={canDefer}
         onChoose={act}
         onUndo={undoLast}
       />
