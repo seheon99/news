@@ -1,6 +1,8 @@
+import { orderBy } from "es-toolkit";
 import { createStore } from "zustand/vanilla";
 import { createInitialState } from "@/lib/reader/state/create-initial-state";
 import { mergeFeed } from "@/lib/reader/state/merge-feed";
+import { publishedTime } from "@/lib/reader/state/published-time";
 import { selectStory } from "@/lib/reader/state/select-story";
 import { parseStoredState } from "@/lib/reader/storage/parse-stored-state";
 import type { Choice, FeedResult, ReaderState } from "@/lib/reader/types";
@@ -54,8 +56,18 @@ export function createReaderStore() {
             [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]
               .map((key) => disk.getItem(key))
               .find((value) => value !== null) ?? null;
+          const data =
+            raw === null ? createInitialState() : parseStoredState(raw);
           set({
-            data: raw === null ? createInitialState() : parseStoredState(raw),
+            // Deferral lasts one session, so a reload restores publication order.
+            data: {
+              ...data,
+              queue: orderBy(
+                data.queue.map((id) => data.stories[id]),
+                [publishedTime],
+                ["desc"],
+              ).map((story) => story.id),
+            },
             hydrated: true,
           });
         } catch {
@@ -81,6 +93,7 @@ export function createReaderStore() {
         const { data, history } = get();
         if (
           !data.queue.length ||
+          (action === "defer" && data.queue.length < 2) ||
           (expectedId !== undefined && data.queue[0] !== expectedId)
         )
           return false;

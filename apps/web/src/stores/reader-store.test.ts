@@ -63,6 +63,33 @@ test("reload restores every selection and source record, but starts with no undo
   assert.deepEqual(restored.getState().data, beforeReload);
 });
 
+test("the last story cannot be deferred and leaves nothing to undo", () => {
+  const store = createReaderStore();
+  store.getState().hydrate(storage());
+  store.getState().merge(result(["only"]));
+  assert.equal(store.getState().choose("defer"), false);
+  assert.deepEqual(store.getState().data.queue, ["only"]);
+  assert.deepEqual(store.getState().history, []);
+});
+
+test("reload returns deferred stories to publication order", () => {
+  const disk = storage();
+  const store = createReaderStore();
+  store.getState().hydrate(disk);
+  store.getState().merge({
+    source,
+    stories: ["one", "two", "three"].map((id, i) => ({
+      ...story(id),
+      publishedAt: `2026-01-0${3 - i}T00:00:00.000Z`,
+    })),
+  });
+  store.getState().choose("defer");
+  assert.deepEqual(store.getState().data.queue, ["two", "three", "one"]);
+  const restored = createReaderStore();
+  restored.getState().hydrate(disk);
+  assert.deepEqual(restored.getState().data.queue, ["one", "two", "three"]);
+});
+
 test("corrupt storage is preserved and write failures are visible", () => {
   const disk = storage("broken");
   const store = createReaderStore();

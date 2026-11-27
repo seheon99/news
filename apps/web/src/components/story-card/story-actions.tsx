@@ -15,11 +15,13 @@ const actionButton =
 export function StoryActions({
   hasStory,
   canUndo,
+  canDefer,
   onChoose,
   onUndo,
 }: {
   hasStory: boolean;
   canUndo: boolean;
+  canDefer: boolean;
   onChoose: (action: Choice) => void;
   onUndo: () => void;
 }) {
@@ -59,6 +61,7 @@ export function StoryActions({
         {
           label: "큐 맨 뒤로 보류",
           icon: <ArrowUpIcon />,
+          disabled: !canDefer,
           run: () => onChoose("defer"),
         },
         {
