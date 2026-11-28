@@ -1,0 +1,278 @@
+// joobjoob service data model (issue #23). Paste into https://dbdiagram.io to render.
+// PostgreSQL 18. The server is the single source of truth; devices keep only a session token.
+// Deferral order and the undo stack live in the browsing session and are never persisted.
+
+Project joobjoob {
+  database_type: 'PostgreSQL'
+}
+
+// ---------- Identity ----------
+
+Enum identity_provider {
+  google
+  apple
+}
+
+Enum feed_order {
+  newest_first
+  oldest_first
+}
+
+Enum client_platform {
+  web
+  ios
+  android
+}
+
+Table users {
+  id uuid [pk, default: `uuidv7()`]
+  feed_order feed_order [not null, default: 'newest_first']
+  created_at timestamptz [not null, default: `now()`]
+  linked_at timestamptz [note: 'Set when the first identity is linked. NULL = guest.']
+  Note: 'Guests and members share this table. Linking an identity upgrades the guest in place, so the id never changes. No profile or nickname.'
+}
+
+Table user_identities {
+  id uuid [pk, default: `uuidv7()`]
+  user_id uuid [not null]
+  provider identity_provider [not null]
+  subject text [not null, note: 'Provider "sub" claim. No email or name is stored.']
+  created_at timestamptz [not null, default: `now()`]
+  indexes {
+    (provider, subject) [unique]
+    (user_id, provider) [unique]
+  }
+}
+
+Table sessions {
+  id uuid [pk, default: `uuidv7()`]
+  user_id uuid [not null]
+  token_hash bytea [not null, unique, note: 'SHA-256 of the opaque token sent in the HttpOnly cookie or mobile keychain.']
+  platform client_platform [not null]
+  created_at timestamptz [not null, default: `now()`]
+  last_seen_at timestamptz [not null, default: `now()`]
+  expires_at timestamptz [not null, note: 'Sliding: extended on use. A guest has no other way back to their data.']
+  revoked_at timestamptz [note: 'Logout revokes the member session; the client then starts a new guest session.']
+  indexes {
+    user_id
+  }
+}
+
+// ---------- Sources and subscriptions ----------
+
+Enum source_kind {
+  rss
+  newsletter
+}
+
+Enum source_request_status {
+  pending
+  approved
+  rejected
+}
+
+Enum external_subscription_status {
+  subscribing
+  action_required [note: 'CAPTCHA or another step only the user can do']
+  active
+  unsubscribing
+  unsubscribed [note: 'Set only after the unsubscription is actually confirmed']
+  failed
+}
+
+Table sources {
+  id uuid [pk, default: `uuidv7()`]
+  kind source_kind [not null]
+  title text [not null]
+  description text
+  site_url text
+  feed_url text [unique, note: 'RSS only. The server fetches only operator-approved sources. Mobile direct collection (#39) is not modelled yet.']
+  sender_address text [unique, note: 'Newsletter only. From address used to identify the publisher.']
+  recommended boolean [not null, default: false, note: 'Operator-curated list shown on first use. Never auto-subscribed.']
+  fetched_at timestamptz [note: 'RSS: last successful fetch']
+  fetch_error text [note: 'RSS: last failure, cleared on success']
+  created_at timestamptz [not null, default: `now()`]
+  checks {
+    `(kind = 'rss') = (feed_url IS NOT NULL)` [name: 'sources_rss_has_feed_url']
+    `kind = 'newsletter' OR sender_address IS NULL` [name: 'sources_sender_only_for_newsletters']
+  }
+}
+
+Table source_requests {
+  id uuid [pk, default: `uuidv7()`]
+  user_id uuid [note: 'NULL after the requester deletes their data']
+  feed_url text [not null]
+  status source_request_status [not null, default: 'pending']
+  source_id uuid [note: 'Source created or matched on approval']
+  created_at timestamptz [not null, default: `now()`]
+  reviewed_at timestamptz
+  Note: 'Web users ask for an unsupported RSS feed; an operator reviews it by hand.'
+}
+
+Table subscriptions {
+  user_id uuid [not null]
+  source_id uuid [not null]
+  subscribed_at timestamptz [not null, default: `now()`]
+  unsubscribed_at timestamptz [note: 'NULL = active. Re-subscribing reuses the row, so existing user_stories (and their states) are kept.']
+  external_status external_subscription_status [note: 'Newsletter only: progress of automatic subscribe/unsubscribe with the publisher']
+  indexes {
+    (user_id, source_id) [pk]
+    source_id [note: 'Fan-out of new stories to subscribers']
+  }
+  Note: 'No subscription limit. Guests may only subscribe to RSS sources (enforced in the application).'
+}
+
+// ---------- Newsletter intake ----------
+
+Enum inbound_email_status {
+  received
+  not_newsletter [note: 'Ordinary email; never shown in the feed']
+  parsed
+  failed
+}
+
+Enum automation_kind {
+  parser
+  subscribe
+  unsubscribe
+}
+
+Enum automation_status {
+  candidate
+  active
+  retired
+  failed
+}
+
+Table mailboxes {
+  id uuid [pk, default: `uuidv7()`]
+  user_id uuid [not null, unique, note: 'Members only, one per user']
+  local_part text [not null, unique, note: 'Immutable, with at least 128 random bits so a deleted address is never generated again']
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table inbound_emails {
+  id uuid [pk, default: `uuidv7()`]
+  mailbox_id uuid [not null]
+  message_id text [not null, note: 'RFC 5322 Message-ID, for idempotent sync']
+  from_address text [not null]
+  source_id uuid [note: 'Matched publisher, if any']
+  raw_object_key text [note: 'Original MIME in object storage. NULL once destroyed.']
+  status inbound_email_status [not null, default: 'received']
+  automation_id uuid [note: 'Parser that produced the stories']
+  attempts integer [not null, default: 0]
+  last_error text
+  received_at timestamptz [not null]
+  retain_until timestamptz [note: 'received_at + 1 year when parsed. NULL while failed (kept for reprocessing, subject to deletion duties).']
+  indexes {
+    (mailbox_id, message_id) [unique]
+    (status, received_at)
+  }
+}
+
+Table publisher_automations {
+  id uuid [pk, default: `uuidv7()`]
+  source_id uuid [not null]
+  kind automation_kind [not null]
+  version integer [not null]
+  status automation_status [not null, default: 'candidate']
+  artifact_ref text [not null, note: 'Location of the LLM-generated, validated script']
+  failure_log text
+  created_at timestamptz [not null, default: `now()`]
+  validated_at timestamptz
+  indexes {
+    (source_id, kind, version) [unique]
+  }
+  Note: 'Generated once per publisher, validated, then reused. Regenerated as a new version on failure. At most one active row per (source_id, kind), enforced with a partial unique index.'
+}
+
+// ---------- Content and per-user state ----------
+
+Enum story_state {
+  inbox
+  discarded
+  read_later
+  read
+  archived
+}
+
+Table stories {
+  id uuid [pk, default: `uuidv7()`]
+  source_id uuid [not null]
+  inbound_email_id uuid [note: 'Newsletter stories: the email they were extracted from']
+  url text [not null, note: 'Original article, opened directly from the card']
+  url_hash bytea [not null, note: 'SHA-256 of the normalised URL; dedupe key']
+  title text [not null]
+  summary text [note: 'Intro text the source provided, shown in full. Never LLM-generated.']
+  image_url text
+  published_at timestamptz [note: 'NULL when the source gives none']
+  collected_at timestamptz [not null, default: `now()`]
+  indexes {
+    (source_id, url_hash) [unique]
+    (source_id, published_at)
+  }
+  Note: 'One RSS item, or one item extracted from a newsletter, is one story. Shared by every subscriber.'
+}
+
+Table user_stories {
+  user_id uuid [not null]
+  story_id uuid [not null]
+  url_hash bytea [not null, note: 'Copied from stories, so one URL reaches a user only once across sources']
+  published_at timestamptz [note: 'Copied from stories so the feed can be sorted and paged from one index']
+  state story_state [not null, default: 'inbox']
+  delivered_at timestamptz [not null, default: `now()`]
+  state_changed_at timestamptz [not null, default: `now()`, note: 'Server receipt time. Last valid write wins; also orders the read_later list.']
+  indexes {
+    (user_id, story_id) [pk]
+    (user_id, url_hash) [unique]
+    (user_id, state, published_at, story_id) [note: 'Feed paging; uuidv7 story_id breaks ties']
+    (user_id, state, state_changed_at)
+  }
+  Note: '''
+  A row exists only for stories delivered to the user: new stories are fanned out to active subscribers,
+  and a new RSS subscription gets only the items in the feed at that moment (no backfill).
+  The five states are mutually exclusive. Opening the original never changes state.
+  Transitions go through allowed actions (enforced in the application); unsubscribe keeps rows.
+  '''
+}
+
+// ---------- Relationships ----------
+
+Ref: user_identities.user_id > users.id [delete: cascade]
+Ref: sessions.user_id > users.id [delete: cascade]
+Ref: subscriptions.user_id > users.id [delete: cascade]
+Ref: subscriptions.source_id > sources.id [delete: restrict]
+Ref: source_requests.user_id > users.id [delete: set null]
+Ref: source_requests.source_id > sources.id [delete: set null]
+Ref: mailboxes.user_id - users.id [delete: cascade]
+Ref: inbound_emails.mailbox_id > mailboxes.id [delete: cascade]
+Ref: inbound_emails.source_id > sources.id [delete: set null]
+Ref: inbound_emails.automation_id > publisher_automations.id [delete: set null]
+Ref: publisher_automations.source_id > sources.id [delete: cascade]
+Ref: stories.source_id > sources.id [delete: restrict]
+Ref: stories.inbound_email_id > inbound_emails.id [delete: set null]
+Ref: user_stories.user_id > users.id [delete: cascade]
+Ref: user_stories.story_id > stories.id [delete: cascade]
+
+TableGroup identity {
+  users
+  user_identities
+  sessions
+}
+
+TableGroup subscription {
+  sources
+  source_requests
+  subscriptions
+}
+
+TableGroup newsletter {
+  mailboxes
+  inbound_emails
+  publisher_automations
+}
+
+TableGroup content {
+  stories
+  user_stories
+}
